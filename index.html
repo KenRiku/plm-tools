@@ -622,18 +622,20 @@
     initWeights();
 
     function analyzeSignals(input) {
-      if (/[?？]/.test(input)) return 'question';
-      if (/[!！]/.test(input) || /(.)\1{2,}/.test(input)) return 'excited';
-      if (/\.{3}|。。。/.test(input)) return 'melancholy';
-      if (input.length > 20) return 'passionate';
-      if (/(.{2,3})\1{2,}/.test(input)) return 'emphasis';
+      const exclamations = (input.match(/[!！]/g) || []).length;
+      if (/[?？]/.test(input)) return { category: 'question', intensity: 1 };
+      if (exclamations >= 3 || /(.)\1{4,}/.test(input)) return { category: 'excited', intensity: 3 };
+      if (exclamations >= 1 || /(.)\1{2,}/.test(input)) return { category: 'excited', intensity: exclamations || 1 };
+      if (/\.{3}|。。。/.test(input)) return { category: 'melancholy', intensity: 1 };
+      if (input.length > 20) return { category: 'passionate', intensity: Math.min(3, Math.floor(input.length / 20)) };
+      if (/(.{2,3})\1{2,}/.test(input)) return { category: 'emphasis', intensity: 2 };
       if (
         /[\u30A0-\u30FF]/.test(input) &&
         /[\u3040-\u309F]/.test(input) &&
         (input.match(/[。！？、…]/g) || []).length >= 2
-      ) return 'emotional';
-      if (input.length < 5) return 'casual';
-      return 'casual';
+      ) return { category: 'emotional', intensity: 1 };
+      if (input.length < 5) return { category: 'casual', intensity: 1 };
+      return { category: 'casual', intensity: 1 };
     }
 
     function weightedPick(category) {
@@ -669,6 +671,14 @@
       return prefix + core + suffix;
     }
 
+    function addIntensity(text, intensity) {
+      if (intensity <= 1) return text;
+      const bangs = '！'.repeat(Math.min(intensity, 3));
+      // Strip existing trailing punctuation before adding intensity
+      const stripped = text.replace(/[！!]+$/, '');
+      return stripped + bangs;
+    }
+
     function isInRingBuffer(text) {
       return session.ringBuffer.includes(text);
     }
@@ -686,15 +696,15 @@
       session.translationCount++;
       session.gorillaTranslateCount++;
 
-      // First gorilla→JP translation always gets a greeting
-      if (session.gorillaTranslateCount === 1) {
+      // First gorilla→JP translation: 50% chance greeting, 50% normal analysis
+      if (session.gorillaTranslateCount === 1 && Math.random() < 0.5) {
         const greetings = PHRASE_POOLS.greeting;
         const greeting = greetings[Math.floor(Math.random() * greetings.length)];
         pushRingBuffer(greeting);
         return greeting;
       }
 
-      const category = analyzeSignals(input);
+      const { category, intensity } = analyzeSignals(input);
 
       let result = null;
       for (let i = 0; i < 10; i++) {
@@ -710,6 +720,7 @@
         result = maybeComposite(weightedPick(category));
       }
 
+      result = addIntensity(result, intensity);
       pushRingBuffer(result);
 
       if (bananaProgress >= 100) {
