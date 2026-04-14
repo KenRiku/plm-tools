@@ -712,7 +712,10 @@
 
       pushRingBuffer(result);
 
-      if (session.translationCount >= 6 && Math.random() < 0.4) {
+      if (bananaProgress >= 100) {
+        const count = 1 + Math.floor(Math.random() * 3);
+        result = result + '🍌'.repeat(count);
+      } else if (session.translationCount >= 6 && Math.random() < 0.4) {
         const emoji = BONUS_EMOJI[Math.floor(Math.random() * BONUS_EMOJI.length)];
         result = result + emoji;
       }
@@ -794,7 +797,12 @@
         }
       }
 
-      return gorillaParts.join(' ');
+      let result = gorillaParts.join(' ');
+      if (bananaProgress >= 100) {
+        const count = 1 + Math.floor(Math.random() * 3);
+        result = result + '🍌'.repeat(count);
+      }
+      return result;
     }
 
     // ===== SOUND =====
