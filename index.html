@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ゴリラ翻訳機 — Gorilla Translator</title>
+  <style>
+    /* Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* Body */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+      background: linear-gradient(180deg, #FFC107 0%, #FFD54F 50%, #FFF8E1 100%);
+      min-height: 100vh;
+      color: #3e2723;
+    }
+
+    /* Container */
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 20px 16px 40px;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .header-emoji {
+      font-size: 64px;
+      line-height: 1.1;
+      margin-bottom: 8px;
+    }
+
+    .header-title {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      color: #3e2723;
+      margin-bottom: 4px;
+    }
+
+    .header-subtitle {
+      font-size: 14px;
+      color: #6d4c41;
+    }
+
+    /* Name Badge */
+    .name-badge {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+
+    .name-badge-icon {
+      font-size: 20px;
+    }
+
+    .name-badge-text {
+      border: 2px dashed #d4a017;
+      background: #FFF8E1;
+      border-radius: 20px;
+      padding: 4px 14px;
+      font-size: 15px;
+      font-weight: 600;
+      color: #3e2723;
+    }
+
+    .name-badge-edit {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      opacity: 0.5;
+      transition: opacity 0.15s ease;
+      padding: 2px 4px;
+    }
+
+    .name-badge-edit:hover {
+      opacity: 1;
+    }
+
+    .name-badge-input {
+      border: 2px solid #d4a017;
+      background: #FFF8E1;
+      border-radius: 20px;
+      padding: 4px 14px;
+      font-size: 15px;
+      font-weight: 600;
+      color: #3e2723;
+      outline: none;
+      width: 140px;
+    }
+
+    .name-badge-input:focus {
+      border-color: #ffc107;
+    }
+
+    /* Input Card */
+    .input-card {
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+
+    .input-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: #6d4c41;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+
+    .input-textarea {
+      width: 100%;
+      background: #fffde7;
+      border: 2px solid #ffe082;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 16px;
+      font-family: inherit;
+      color: #3e2723;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+
+    .input-textarea:focus {
+      border-color: #ffc107;
+    }
+
+    .input-textarea::placeholder {
+      color: #bcaaa4;
+    }
+
+    /* Button Row */
+    .button-row {
+      display: flex;
+      flex-direction: row;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    /* Buttons - Base */
+    .btn {
+      flex: 1;
+      border: none;
+      border-radius: 12px;
+      min-height: 44px;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      padding: 0 16px;
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+      color: #ffffff;
+    }
+
+    .btn:active {
+      transform: scale(0.95);
+    }
+
+    /* Translate Button */
+    .btn-translate {
+      background: #4CAF50;
+      box-shadow: 0 3px 0 #388E3C;
+    }
+
+    .btn-translate:active {
+      box-shadow: 0 1px 0 #388E3C;
+      transform: scale(0.95) translateY(2px);
+    }
+
+    /* Reverse Button */
+    .btn-reverse {
+      background: #FF9800;
+      box-shadow: 0 3px 0 #E65100;
+    }
+
+    .btn-reverse:active {
+      box-shadow: 0 1px 0 #E65100;
+      transform: scale(0.95) translateY(2px);
+    }
+
+    /* Secondary Buttons */
+    .btn-secondary {
+      background: #fffde7;
+      border: 2px solid #ffe082;
+      color: #3e2723;
+      box-shadow: none;
+    }
+
+    .btn-secondary:active {
+      transform: scale(0.95);
+    }
+
+    /* Output Area */
+    .output-area {
+      text-align: center;
+      margin-bottom: 14px;
+    }
+
+    .output-gorilla {
+      font-size: 40px;
+      line-height: 1;
+      margin-bottom: 6px;
+      display: inline-block;
+      transition: transform 0.2s ease;
+    }
+
+    .output-gorilla.react {
+      transform: scale(1.3);
+    }
+
+    /* Speech Bubble */
+    .speech-bubble {
+      position: relative;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      padding: 16px 18px 12px;
+      text-align: left;
+      animation: bubbleIn 0.3s ease forwards;
+    }
+
+    @keyframes bubbleIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Speech Bubble Arrow (triangle above bubble pointing up toward gorilla) */
+    .speech-bubble-arrow {
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 10px solid transparent;
+      border-right: 10px solid transparent;
+      border-bottom: 10px solid #ffffff;
+    }
+
+    .speech-bubble-text {
+      font-size: 22px;
+      font-weight: 700;
+      color: #3e2723;
+      margin-bottom: 6px;
+      word-break: break-word;
+    }
+
+    .speech-bubble-subtitle {
+      font-size: 11px;
+      color: #a1887f;
+    }
+
+    /* Progress Card */
+    .progress-card {
+      background: rgba(255, 255, 255, 0.6);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+    }
+
+    .progress-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #6d4c41;
+      margin-bottom: 8px;
+    }
+
+    .progress-track {
+      background: #ffe082;
+      border-radius: 7px;
+      height: 14px;
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #FFC107, #FF9800);
+      border-radius: 7px;
+      transition: width 0.5s ease;
+    }
+
+    .progress-max {
+      font-size: 14px;
+      font-weight: 800;
+      color: #FF6F00;
+      text-align: center;
+      animation: maxFlash 0.6s ease infinite alternate;
+    }
+
+    @keyframes maxFlash {
+      from {
+        transform: scale(1);
+      }
+      to {
+        transform: scale(1.08);
+      }
+    }
+
+    /* Emoji Reactions */
+    .emoji-reactions {
+      font-size: 28px;
+      letter-spacing: 10px;
+      text-align: center;
+      margin-bottom: 14px;
+    }
+
+    .emoji-reactions.shake {
+      animation: shake 0.5s ease;
+    }
+
+    @keyframes shake {
+      0%   { transform: translateX(0) rotate(0deg); }
+      15%  { transform: translateX(-4px) rotate(-3deg); }
+      30%  { transform: translateX(4px) rotate(3deg); }
+      45%  { transform: translateX(-4px) rotate(-3deg); }
+      60%  { transform: translateX(4px) rotate(3deg); }
+      75%  { transform: translateX(-2px) rotate(-1deg); }
+      90%  { transform: translateX(2px) rotate(1deg); }
+      100% { transform: translateX(0) rotate(0deg); }
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(120px);
+      background: #3e2723;
+      color: #ffffff;
+      border-radius: 24px;
+      padding: 10px 22px;
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+      z-index: 9999;
+      transition: transform 0.3s ease;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- Header -->
+    <header class="header">
+      <div class="header-emoji">🦍</div>
+      <h1 class="header-title">GORILLA TRANSLATOR</h1>
+      <p class="header-subtitle">ゴリラ翻訳機</p>
+    </header>
+
+    <!-- Gorilla Name Badge -->
+    <div class="name-badge">
+      <span class="name-badge-icon">🦍</span>
+      <span class="name-badge-text" id="gorillaNameDisplay">ゴリ太郎</span>
+      <button class="name-badge-edit" id="nameEditBtn" aria-label="名前を変更">✏️</button>
+      <input class="name-badge-input" id="gorillaNameInput" type="text" maxlength="20" style="display:none;">
+    </div>
+
+    <!-- Input Area -->
+    <div class="input-card">
+      <label class="input-label" for="mainInput">INPUT</label>
+      <textarea id="mainInput" class="input-textarea" rows="3" placeholder="ゴリラ語を入力... 例: ウホウホ？ウホォ！"></textarea>
+    </div>
+
+    <!-- Main Action Buttons -->
+    <div class="button-row">
+      <button class="btn btn-translate" id="translateBtn">🦍→日本語 翻訳</button>
+      <button class="btn btn-reverse" id="reverseBtn">日本語→🦍 逆翻訳</button>
+    </div>
+
+    <!-- Output Speech Bubble -->
+    <div class="output-area" id="outputArea" style="display:none;">
+      <div class="output-gorilla" id="outputGorilla">🦍</div>
+      <div class="speech-bubble">
+        <div class="speech-bubble-arrow"></div>
+        <div class="speech-bubble-text" id="outputText"></div>
+        <div class="speech-bubble-subtitle" id="outputSubtitle">ゴリ太郎の翻訳結果</div>
+      </div>
+    </div>
+
+    <!-- Banana Progress Bar -->
+    <div class="progress-card">
+      <div class="progress-label">バナナパワー 🍌</div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill" style="width:0%"></div>
+      </div>
+      <div class="progress-max" id="progressMax" style="display:none;">🍌 MAX POWER! 🍌</div>
+    </div>
+
+    <!-- Secondary Buttons -->
+    <div class="button-row">
+      <button class="btn btn-secondary" id="soundBtn">🔊 Sound</button>
+      <button class="btn btn-secondary" id="shareBtn">📤 Share</button>
+    </div>
+
+    <!-- Emoji Reactions -->
+    <div class="emoji-reactions" id="emojiReactions">🦍🍌😂</div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+  </div>
+
+  <script>
+    // ============================================================
+    // TASK 3: Translation Data — Phrase Pools
+    // ============================================================
+
+    const PHRASE_POOLS = {
+      greeting: [
+        'よう！',
+        'やあ',
+        'ウホ、来たな',
+        'おう、待ってたぞ',
+        'やっと来たか',
+      ],
+      question: [
+        'それマジ？',
+        'ほんとに？',
+        'え、うそでしょ',
+        '聞いてる？',
+        'なんで？',
+        'マジか...',
+        'どういうこと？',
+        '誰に聞いてんの？',
+        'は？',
+        'それ聞く？',
+        'なんの話？',
+        '知らんけど？',
+        'え、なに？',
+      ],
+      excited: [
+        'めっちゃテンション上がる！',
+        'バナナ見つけた！！',
+        '最高かよ！',
+        'やばいやばい！',
+        'ドラミング始めるわ！',
+        'うおおおお！',
+        'テンションMAX！',
+        'ジャングルが揺れる！',
+        '止まらねえ！',
+        'これはアツい！',
+        'バナナ100本分の喜び！',
+      ],
+      passionate: [
+        '今日は語りたい気分',
+        '聞いてくれよ、長い話がある',
+        'めっちゃ興奮してる',
+        '止まらないんだわ',
+        '言いたいことがありすぎる',
+        '熱い思いを伝えたい',
+        '胸がいっぱい',
+        '今のオレを見てくれ',
+        '全力で伝える',
+        '魂の叫びを聞け',
+      ],
+      casual: [
+        'バナナくれ',
+        '今ヒマ？',
+        'それわかる',
+        'ちょっと落ち着け',
+        '仲間呼んでる',
+        'よう',
+        'ん？',
+        'まあね',
+        'そうだな',
+        'べつに',
+        'ふーん',
+        'あー',
+        'ヒマだな',
+        'なんかない？',
+        '暇すぎてドラミングしてた',
+      ],
+      emphasis: [
+        '何回言わせんの',
+        '大事なことだから',
+        'しつこいって言われる',
+        'だから言ったじゃん',
+        'いい加減わかれ',
+        'もう一回言うぞ',
+        '聞いてなかったのか',
+        'メモしろ',
+        '覚えとけ',
+        'ここテストに出る',
+      ],
+      emotional: [
+        '気持ちが溢れてる',
+        '複雑な気分',
+        'ゴリラだって泣く',
+        'いろいろあんのよ',
+        '言葉にできない',
+        '胸がぎゅっとなる',
+        '感情のジェットコースター',
+        'わかってほしい',
+        '今日は色々あったんだ',
+        'ゴリラの心は繊細',
+      ],
+      melancholy: [
+        'バナナ...ないの？',
+        '森が恋しい',
+        '一人は寂しいな',
+        '雨の日は静かにしたい',
+        'ため息しか出ない',
+        '遠い目してる',
+        'ちょっと放っておいて',
+        '木の上でぼーっとしたい',
+        '今日は静かにドラミング',
+      ],
+    };
+
+    const PREFIXES = ['', '', 'うーん、', 'あのさ、', 'ちょっと、', 'ねえ、', 'まあ、', 'おい、'];
+
+    const SUFFIXES = ['', '', 'って感じ', 'かな', 'でしょ', 'よね', 'けど', 'んだわ', 'じゃん'];
+
+    const BONUS_EMOJI = ['🍌', '💪', '🦍', '🌴', '😤', '✨', '🔥'];
+
+    const GORILLA_SOUNDS = {
+      short_kata:  ['ウホ', 'ウッホ', 'ホ'],
+      short_hira:  ['うほ', 'うっほ', 'ほ'],
+      medium_kata: ['ウホウホ', 'ウホッウホ'],
+      medium_hira: ['うほうほ', 'うほっうほ'],
+      long_kata:   ['ウホウホウホ', 'ウッホウッホ', 'ウホウホウッホ'],
+      long_hira:   ['うほうほうほ', 'うっほうっほ'],
+      dramatic:    ['ウッ...', 'ドンドン🥁', '*胸を叩く*', '...', 'ウホォォォ'],
+    };
+
+    const PARTICLES = /([はがをにでともの]|[よねか](?=[。！？、]|$)|[。！？、\n])/;
+
+    // ============================================================
+    // TASK 4: Translation Engine — Gorilla → Japanese
+    // ============================================================
+
+    const session = {
+      translationCount: 0,
+      gorillaTranslateCount: 0, // separate counter for gorilla→JP direction
+      ringBuffer: [],
+      ringBufferSize: 8,
+      weights: {},
+    };
+
+    function initWeights() {
+      for (const category in PHRASE_POOLS) {
+        session.weights[category] = {};
+        for (const phrase of PHRASE_POOLS[category]) {
+          session.weights[category][phrase] = 1;
+        }
+      }
+    }
+    initWeights();
+
+    function analyzeSignals(input) {
+      if (/[?？]/.test(input)) return 'question';
+      if (/[!！]/.test(input) || /(.)\1{2,}/.test(input)) return 'excited';
+      if (/\.{3}|。。。/.test(input)) return 'melancholy';
+      if (input.length > 20) return 'passionate';
+      if (/(.{2,3})\1{2,}/.test(input)) return 'emphasis';
+      if (
+        /[\u30A0-\u30FF]/.test(input) &&
+        /[\u3040-\u309F]/.test(input) &&
+        (input.match(/[。！？、…]/g) || []).length >= 2
+      ) return 'emotional';
+      if (input.length < 5) return 'casual';
+      return 'casual';
+    }
+
+    function weightedPick(category) {
+      const pool = PHRASE_POOLS[category];
+      const weights = session.weights[category];
+
+      let total = pool.reduce((sum, p) => sum + weights[p], 0);
+      // Reset when all weights have decayed near zero
+      if (total < pool.length * 0.2) {
+        for (const p of pool) weights[p] = 1;
+        total = pool.length;
+      }
+
+      let rand = Math.random() * total;
+      for (const phrase of pool) {
+        rand -= weights[phrase];
+        if (rand <= 0) {
+          weights[phrase] = Math.max(0.1, weights[phrase] * 0.5);
+          return phrase;
+        }
+      }
+      // fallback: last phrase
+      const last = pool[pool.length - 1];
+      weights[last] = Math.max(0.1, weights[last] * 0.5);
+      return last;
+    }
+
+    function maybeComposite(core) {
+      if (Math.random() < 0.4) return core;
+      const prefix = PREFIXES[Math.floor(Math.random() * PREFIXES.length)];
+      const suffix = SUFFIXES[Math.floor(Math.random() * SUFFIXES.length)];
+      return prefix + core + suffix;
+    }
+
+    function isInRingBuffer(text) {
+      return session.ringBuffer.includes(text);
+    }
+
+    function pushRingBuffer(text) {
+      session.ringBuffer.push(text);
+      if (session.ringBuffer.length > session.ringBufferSize) {
+        session.ringBuffer.shift();
+      }
+    }
+
+    function translateGorillaToJapanese(input) {
+      if (!input || input.trim() === '') return null;
+
+      session.translationCount++;
+      session.gorillaTranslateCount++;
+
+      // First gorilla→JP translation always gets a greeting
+      if (session.gorillaTranslateCount === 1) {
+        const greetings = PHRASE_POOLS.greeting;
+        const greeting = greetings[Math.floor(Math.random() * greetings.length)];
+        pushRingBuffer(greeting);
+        return greeting;
+      }
+
+      const category = analyzeSignals(input);
+
+      let result = null;
+      for (let i = 0; i < 10; i++) {
+        const picked = weightedPick(category);
+        const composite = maybeComposite(picked);
+        if (!isInRingBuffer(composite)) {
+          result = composite;
+          break;
+        }
+      }
+      // If all attempts were in ring buffer, use last composite anyway
+      if (result === null) {
+        result = maybeComposite(weightedPick(category));
+      }
+
+      pushRingBuffer(result);
+
+      if (session.translationCount >= 6 && Math.random() < 0.4) {
+        const emoji = BONUS_EMOJI[Math.floor(Math.random() * BONUS_EMOJI.length)];
+        result = result + emoji;
+      }
+
+      return result;
+    }
+
+    // ============================================================
+    // TASK 5: Reverse Translation — Japanese → Gorilla
+    // ============================================================
+
+    function chunkJapanese(input) {
+      const parts = input.split(PARTICLES);
+      const chunks = [];
+      let current = '';
+
+      for (const part of parts) {
+        current += part;
+        // Merge small fragments (≤2 chars) with the next part unless it ends with sentence-final punctuation
+        if (current.length > 2 || /[。！？\n]/.test(current)) {
+          chunks.push(current);
+          current = '';
+        }
+      }
+      if (current.length > 0) {
+        if (chunks.length > 0) {
+          chunks[chunks.length - 1] += current;
+        } else {
+          chunks.push(current);
+        }
+      }
+
+      return chunks.filter(c => c.length > 0);
+    }
+
+    function chunkToGorilla(chunk) {
+      // Detect trailing punctuation to preserve
+      const trailingMatch = chunk.match(/([！？。])$/);
+      const trailing = trailingMatch ? trailingMatch[1] : '';
+      const base = trailing ? chunk.slice(0, -1) : chunk;
+      const len = base.length;
+
+      // Decide katakana or hiragana pool randomly
+      const useKata = Math.random() < 0.5;
+
+      let sound;
+      if (len <= 3) {
+        const pool = useKata ? GORILLA_SOUNDS.short_kata : GORILLA_SOUNDS.short_hira;
+        sound = pool[Math.floor(Math.random() * pool.length)];
+      } else if (len <= 7) {
+        const pool = useKata ? GORILLA_SOUNDS.medium_kata : GORILLA_SOUNDS.medium_hira;
+        sound = pool[Math.floor(Math.random() * pool.length)];
+      } else {
+        const pool = useKata ? GORILLA_SOUNDS.long_kata : GORILLA_SOUNDS.long_hira;
+        sound = pool[Math.floor(Math.random() * pool.length)];
+      }
+
+      // Preserve trailing punctuation with gorilla flavor
+      if (trailing === '！') return sound + 'ウホォ！';
+      if (trailing === '？') return sound + 'ウホ？';
+      if (trailing === '。') return sound + 'ウホ。';
+      return sound;
+    }
+
+    function translateJapaneseToGorilla(input) {
+      if (!input || input.trim() === '') return null;
+
+      session.translationCount++;
+
+      const chunks = chunkJapanese(input);
+      const gorillaParts = [];
+
+      for (let i = 0; i < chunks.length; i++) {
+        gorillaParts.push(chunkToGorilla(chunks[i]));
+        // 15% chance to insert a dramatic sound between chunks (not after last)
+        if (i < chunks.length - 1 && Math.random() < 0.15) {
+          const dramatic = GORILLA_SOUNDS.dramatic;
+          gorillaParts.push(dramatic[Math.floor(Math.random() * dramatic.length)]);
+        }
+      }
+
+      return gorillaParts.join(' ');
+    }
+
+    // ===== SOUND =====
+
+    let audioCtx = null;
+
+    function playUho(startTime, baseFreq) {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.type = 'sawtooth';
+      // "Uh" part: low frequency
+      osc.frequency.setValueAtTime(baseFreq, startTime);
+      // "Ho" part: pitch bend up
+      osc.frequency.linearRampToValueAtTime(baseFreq * 1.6, startTime + 0.15);
+      // Drop back
+      osc.frequency.linearRampToValueAtTime(baseFreq * 0.8, startTime + 0.3);
+      // Gain envelope
+      gain.gain.setValueAtTime(0, startTime);
+      gain.gain.linearRampToValueAtTime(0.3, startTime + 0.03);
+      gain.gain.setValueAtTime(0.3, startTime + 0.15);
+      gain.gain.linearRampToValueAtTime(0, startTime + 0.35);
+      osc.start(startTime);
+      osc.stop(startTime + 0.35);
+    }
+
+    function playGorillaSound() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const now = audioCtx.currentTime;
+      const burstCount = 1 + Math.floor(Math.random() * 3);
+      for (let i = 0; i < burstCount; i++) {
+        playUho(now + i * 0.4, 80 + Math.random() * 40);
+      }
+    }
+
+    // ===== SHARE =====
+
+    let lastInput = '';
+    let lastOutput = '';
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(function() {
+        toast.classList.remove('show');
+      }, 2000);
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(function() {
+        showToast('クリップボードにコピーしました！');
+      }).catch(function() {
+        showToast('コピーに失敗しました');
+      });
+    }
+
+    function shareTranslation() {
+      const text = '「' + lastInput + ' → ' + lastOutput + ' 🦍」\nゴリラ翻訳機で翻訳しました';
+      if (navigator.share) {
+        navigator.share({ text: text }).catch(function() {
+          copyToClipboard(text);
+        });
+      } else {
+        copyToClipboard(text);
+      }
+    }
+
+    // ===== NAME MANAGEMENT =====
+
+    const DEFAULT_NAME = 'ゴリ太郎';
+    const NAME_STORAGE_KEY = 'gorillaName';
+
+    function getGorillaName() {
+      try {
+        return localStorage.getItem(NAME_STORAGE_KEY) || DEFAULT_NAME;
+      } catch (e) {
+        return DEFAULT_NAME;
+      }
+    }
+
+    function setGorillaName(name) {
+      const trimmed = (name || '').trim();
+      const finalName = trimmed.length > 0 ? trimmed : DEFAULT_NAME;
+      try {
+        localStorage.setItem(NAME_STORAGE_KEY, finalName);
+      } catch (e) { /* Safari private mode — silently skip */ }
+      updateNameDisplay(finalName);
+    }
+
+    function updateNameDisplay(name) {
+      document.getElementById('gorillaNameDisplay').textContent = name;
+      document.getElementById('outputSubtitle').textContent = name + 'の翻訳結果';
+    }
+
+    function startNameEdit() {
+      const display = document.getElementById('gorillaNameDisplay');
+      const editBtn = document.getElementById('nameEditBtn');
+      const input = document.getElementById('gorillaNameInput');
+      display.style.display = 'none';
+      editBtn.style.display = 'none';
+      input.value = getGorillaName();
+      input.style.display = '';
+      input.focus();
+      input.select();
+    }
+
+    function finishNameEdit() {
+      const display = document.getElementById('gorillaNameDisplay');
+      const editBtn = document.getElementById('nameEditBtn');
+      const input = document.getElementById('gorillaNameInput');
+      setGorillaName(input.value);
+      input.style.display = 'none';
+      display.style.display = '';
+      editBtn.style.display = '';
+    }
+
+    // ===== PROGRESS BAR =====
+
+    let bananaProgress = 0;
+
+    function updateProgressBar() {
+      bananaProgress = Math.min(100, bananaProgress + 12);
+      const fill = document.getElementById('progressFill');
+      fill.style.width = bananaProgress + '%';
+      const maxLabel = document.getElementById('progressMax');
+      if (bananaProgress >= 100) {
+        maxLabel.style.display = '';
+        // Re-trigger animation
+        maxLabel.style.animation = 'none';
+        maxLabel.offsetHeight;
+        maxLabel.style.animation = '';
+      } else {
+        maxLabel.style.display = 'none';
+      }
+    }
+
+    // ===== ANIMATIONS =====
+
+    function animateGorilla() {
+      const gorilla = document.getElementById('outputGorilla');
+      gorilla.classList.add('react');
+      setTimeout(function() {
+        gorilla.classList.remove('react');
+      }, 300);
+    }
+
+    function animateEmoji() {
+      const sets = ['🦍🍌😂', '🦍💪🍌', '🍌😤🦍', '🦍🌴✨', '🔥🦍🍌', '🦍😎🍌'];
+      const el = document.getElementById('emojiReactions');
+      el.textContent = sets[Math.floor(Math.random() * sets.length)];
+      el.classList.remove('shake');
+      el.offsetHeight;
+      el.classList.add('shake');
+      setTimeout(function() {
+        el.classList.remove('shake');
+      }, 400);
+    }
+
+    // ===== EVENT LISTENERS & INITIALIZATION =====
+
+    function handleTranslation(result) {
+      if (!result) return;
+      const outputArea = document.getElementById('outputArea');
+      const outputText = document.getElementById('outputText');
+      outputText.textContent = '「' + result + '」';
+      outputArea.style.display = '';
+      // Re-trigger speech bubble animation
+      const bubble = outputArea.querySelector('.speech-bubble');
+      bubble.style.animation = 'none';
+      bubble.offsetHeight;
+      bubble.style.animation = '';
+      animateGorilla();
+      animateEmoji();
+      updateProgressBar();
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      // Restore gorilla name
+      updateNameDisplay(getGorillaName());
+
+      // Translate button
+      document.getElementById('translateBtn').addEventListener('click', function() {
+        const input = document.getElementById('mainInput').value;
+        const result = translateGorillaToJapanese(input);
+        if (result) { lastInput = input; lastOutput = result; handleTranslation(result); }
+      });
+
+      // Reverse button
+      document.getElementById('reverseBtn').addEventListener('click', function() {
+        const input = document.getElementById('mainInput').value;
+        const result = translateJapaneseToGorilla(input);
+        if (result) { lastInput = input; lastOutput = result; handleTranslation(result); }
+      });
+
+      // Sound button
+      document.getElementById('soundBtn').addEventListener('click', function() {
+        playGorillaSound();
+        animateGorilla();
+      });
+
+      // Share button
+      document.getElementById('shareBtn').addEventListener('click', shareTranslation);
+
+      // Name editing
+      document.getElementById('nameEditBtn').addEventListener('click', startNameEdit);
+      const nameInput = document.getElementById('gorillaNameInput');
+      nameInput.addEventListener('blur', finishNameEdit);
+      nameInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') finishNameEdit();
+        if (e.key === 'Escape') { nameInput.value = getGorillaName(); finishNameEdit(); }
+      });
+    });
+  </script>
+</body>
+</html>
