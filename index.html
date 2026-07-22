@@ -2,8 +2,17 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>ゴリラ翻訳機 — Gorilla Translator</title>
+
+  <!-- PWA: installable on a phone home screen -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#FFC107">
+  <link rel="icon" href="/icon-192.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="ゴリラ翻訳機">
   <style>
     /* Reset */
     * {
@@ -1457,6 +1466,15 @@
         }
       });
     });
+
+    // ===== PWA: service worker registration =====
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/sw.js').catch(function() {
+          /* offline install just won't be available — app still works online */
+        });
+      });
+    }
   </script>
 </body>
 </html>

@@ -4,15 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Gorilla Translator (ゴリラ翻訳機) — a single-page comedy web app that "translates" between gorilla language (ウホウホ) and funny Japanese phrases. No AI, no backend, no dependencies. Everything lives in one `index.html` file deployed on GitHub Pages.
+Gorilla Translator (ゴリラ翻訳機) — a single-page comedy web app that "translates" between gorilla language (ウホウホ) and funny Japanese phrases. No AI, no backend, no dependencies. The core app is one `index.html` file with inline CSS and JS; a small set of PWA support files (manifest, service worker, icons) sit alongside it so it can be installed on a phone home screen. Deployed on Vercel.
 
 ## Development
 
-No build step. Open `index.html` in a browser to develop and test. The entire app is a single HTML file with inline CSS and JS.
+No build step. Open `index.html` in a browser to develop and test. If iterating on the service worker or install behavior, serve it over a local HTTP server (`python -m http.server`) rather than `file://`, since service workers require a secure context (localhost counts).
 
 ## Deployment
 
-GitHub Pages serving from root of `main` branch. Just push to `main`.
+Vercel, auto-deploys from `main` (serves from the project root, so all PWA paths — `manifest.json` `start_url`/`scope`, `sw.js` scope — are root-relative). Just push to `main`.
 
 ## Architecture
 
@@ -39,6 +39,10 @@ Single `index.html` organized in sections:
 - Translation uses layered randomization, not AI: signal analysis → weighted pools → **grammar-aware compositing** → ring buffer → mood/session flavor
 - **Absurd, not broken**: inaccuracy is the joke, but output must be well-formed Japanese. Phrases are tagged by grammatical `kind` and `compose()` only attaches fragments where they stay grammatical. When adding phrases, tag them correctly (`p`/`c`/`q`/`x`/`s`) or compositing will mangle them.
 - `session.translationCount` tracks total translations (both directions); `session.gorillaTranslateCount` tracks gorilla→JP only (used for first-greeting logic); `session.mood` / `session.moodPoints` drive the mood chip and emoji reactions
+
+## PWA
+
+`manifest.json` + `sw.js` (stale-while-revalidate app-shell cache) + `icon-192.png`/`icon-512.png`/`apple-touch-icon.png` make the app installable on a phone home screen. All paths are root-relative (`/...`), which matches how Vercel serves the project. Bump `CACHE_NAME` in `sw.js` when shipping changes so installed clients pick up the new version instead of serving a stale cached copy. Service workers need a secure context — works on Vercel (https) and on `localhost`/`127.0.0.1`, not on `file://`.
 
 ## Documentation
 

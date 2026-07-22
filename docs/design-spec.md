@@ -246,11 +246,25 @@ Internal organization:
 
 ## Deployment
 
-- Repository: New repo on personal GitHub account
+- Repository: personal GitHub account
 - Branch: `main`
-- GitHub Pages: Serve from root of `main` branch
-- Single `index.html` at repo root
+- Vercel: auto-deploys `main`, serving from the project root (so `manifest.json`'s `start_url`/`scope` and the service worker's root scope resolve correctly — no subpath to account for)
 - Optional: Add a `README.md` explaining the project
+
+## PWA (installable on a phone home screen)
+
+Sibling files alongside `index.html`, all root-relative since Vercel serves the project from `/`:
+
+| File | Purpose |
+|------|---------|
+| `manifest.json` | Name, theme/background color (`#FFC107`), `display: standalone`, icon list |
+| `sw.js` | Stale-while-revalidate cache of the app shell (`index.html`, manifest, icons) so the app opens and works offline once installed. Bump `CACHE_NAME` when shipping changes to any cached file so clients don't get stuck on a stale version. |
+| `icon-192.png`, `icon-512.png` | Manifest icons — a 🦍 emoji centered on a rounded banana-yellow square, rendered once via canvas (`purpose: "any"`) |
+| `apple-touch-icon.png` (180×180) | iOS home-screen icon — iOS reads this `<link>` tag directly, not the manifest |
+
+`index.html`'s `<head>` links the manifest, sets `theme-color`, and adds the `apple-mobile-web-app-*` meta tags iOS needs for standalone mode. The service worker registers itself at the bottom of the main `<script>` block, guarded by `'serviceWorker' in navigator`.
+
+Service workers require a secure context — `https://` in production (Vercel) or `http://localhost`/`127.0.0.1` for local testing. Testing over `file://` will not register.
 
 ## Future Enhancements (Out of Scope)
 
@@ -259,3 +273,4 @@ Internal organization:
 - Custom domain
 - OGP meta tags for social sharing previews
 - Sound variations / volume control
+- Maskable icon variant (safe-zone padding) for adaptive Android icon shapes
