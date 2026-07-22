@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Gorilla Translator (ゴリラ翻訳機) — a single-page comedy web app that "translates" between gorilla language (ウホウホ) and funny Japanese phrases. No AI, no backend, no dependencies. The core app is one `index.html` file with inline CSS and JS; a small set of PWA support files (manifest, service worker, icons) sit alongside it so it can be installed on a phone home screen. Deployed on Vercel.
 
-`dino-demo.html` is a separate, standalone Chrome-Dino-style gorilla runner (canvas, no dependencies) that is **not linked from `index.html`** — it's a self-contained demo pending approval before being wired into the main app behind a secret trigger. Keeping it separate means it adds zero weight to the main translator.
+`dino-demo.html` is a separate, standalone Chrome-Dino-style gorilla runner (canvas, no dependencies) that is **not linked from `index.html`**'s markup — keeping it in its own file means it adds zero weight to the main translator's bundle. It's reachable by typing the secret phrase `ゴリランナー` into the main input, which reveals a button that opens it in a new tab (see item 15 below).
 
 ## Development
 
@@ -37,14 +37,15 @@ Single `index.html` organized in sections:
   12. **Fortune cookie & facts** — `FORTUNES`/`FUN_FACTS` pools, shown via `showToast()` (now takes an optional `duration` arg) on button click; pure flavor text, no state
   13. **Translation streak** — `updateStreak()`/`renderStreak()`: calendar-day streak counter persisted in `localStorage` (`gorillaStreak`), shown as a badge under the mood chip
   14. **Gorilla evolution** — `updateHeaderEmoji()`: swaps the header emoji based on lifetime banana power in `localStorage` (`gorillaTotalBananas`, +12/translation, never resets), announcing stage-ups via toast + banana rain
+  15. **Gorilla runner unlock** — typing the secret phrase `ゴリランナー` (`RUNNER_SECRET`) into the main input reveals a button linking to `dino-demo.html` (opened in a new tab); unlock state persists in `localStorage` (`gorillaRunnerUnlocked`) so it's a one-time discovery, checked in the same `mainInput` listener as the Konami text detector
 
 ## Key Design Decisions
 
-- Most state is session-scoped; gorilla name, translation streak, and lifetime banana power (evolution) persist via `localStorage`
+- Most state is session-scoped; gorilla name, translation streak, lifetime banana power (evolution), and the gorilla runner unlock persist via `localStorage`
 - Translation uses layered randomization, not AI: signal analysis → weighted pools → **grammar-aware compositing** → ring buffer → mood/session flavor
 - **Absurd, not broken**: inaccuracy is the joke, but output must be well-formed Japanese. Phrases are tagged by grammatical `kind` and `compose()` only attaches fragments where they stay grammatical. When adding phrases, tag them correctly (`p`/`c`/`q`/`x`/`s`) or compositing will mangle them.
 - `session.translationCount` tracks total translations (both directions); `session.gorillaTranslateCount` tracks gorilla→JP only (used for first-greeting logic); `session.mood` / `session.moodPoints` drive the mood chip and emoji reactions
-- New heavier features (like the gorilla runner game) go in their own standalone file first, unlinked from `index.html`, so the main app's payload stays light — only wire them in once approved
+- New heavier features (like the gorilla runner game) go in their own standalone file first, unlinked from `index.html`'s markup, so the main app's payload stays light — gate access via a secret trigger rather than a visible link
 
 ## PWA
 

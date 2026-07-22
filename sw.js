@@ -1,7 +1,7 @@
 // Cache-first app shell so the translator works offline once installed.
 // Bump CACHE_NAME whenever index.html (or any cached asset) changes so
 // clients pick up the new version instead of serving stale content forever.
-const CACHE_NAME = 'gorilla-translator-v3';
+const CACHE_NAME = 'gorilla-translator-v4';
 const APP_SHELL = [
   '/',
   '/index.html',

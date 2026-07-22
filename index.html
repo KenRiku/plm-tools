@@ -626,6 +626,11 @@
       <button class="btn btn-secondary" id="factBtn">🐒 豆知識</button>
     </div>
 
+    <!-- Gorilla Runner (unlocked by typing the secret phrase) -->
+    <div class="button-row" id="runnerRow" style="display:none;">
+      <button class="btn btn-secondary" id="runnerBtn">🕹️ ゴリラランナーで遊ぶ</button>
+    </div>
+
     <!-- Emoji Reactions -->
     <div class="emoji-reactions" id="emojiReactions">🦍🍌😂</div>
 
@@ -1464,6 +1469,26 @@
       if (on) { bananaRain(30); playGorillaSound(4); }
     }
 
+    // ===== GORILLA RUNNER UNLOCK (secret phrase easter egg) =====
+    // Type "ゴリランナー" into the input to reveal a link to the standalone
+    // dino-demo.html mini-game. Stays unlocked across visits once found.
+
+    const RUNNER_UNLOCK_KEY = 'gorillaRunnerUnlocked';
+    const RUNNER_SECRET = 'ゴリランナー';
+
+    function isRunnerUnlocked() {
+      try { return localStorage.getItem(RUNNER_UNLOCK_KEY) === '1'; } catch (e) { return false; }
+    }
+
+    function unlockRunner(announce) {
+      try { localStorage.setItem(RUNNER_UNLOCK_KEY, '1'); } catch (e) { /* Safari private mode */ }
+      document.getElementById('runnerRow').style.display = '';
+      if (announce) {
+        showToast('🕹️ 隠しゲーム「ゴリラランナー」解禁！', 4000);
+        bananaRain(16);
+      }
+    }
+
     // ===== ANIMATIONS =====
 
     function animateGorilla() {
@@ -1556,6 +1581,7 @@
       updateMoodUI();
       renderStreak();
       updateHeaderEmoji(getTotalBananas(), false);
+      if (isRunnerUnlocked()) unlockRunner(false);
 
       // Translate button
       document.getElementById('translateBtn').addEventListener('click', function() {
@@ -1589,6 +1615,11 @@
         showToast(pick(FUN_FACTS), 4000);
       });
 
+      // Gorilla runner button — opens the standalone mini-game in a new tab
+      document.getElementById('runnerBtn').addEventListener('click', function() {
+        window.open('dino-demo.html', '_blank');
+      });
+
       // Name editing
       document.getElementById('nameEditBtn').addEventListener('click', startNameEdit);
       const nameInput = document.getElementById('gorillaNameInput');
@@ -1619,6 +1650,11 @@
         const normalized = e.target.value.replace(/\s+/g, '').toUpperCase();
         if (normalized === KONAMI_TEXT) {
           toggleDisco();
+          e.target.value = '';
+          return;
+        }
+        if (e.target.value.trim() === RUNNER_SECRET && !isRunnerUnlocked()) {
+          unlockRunner(true);
           e.target.value = '';
         }
       });

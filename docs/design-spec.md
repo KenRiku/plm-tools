@@ -290,9 +290,11 @@ Sibling files alongside `index.html`, all root-relative since Vercel serves the 
 
 Service workers require a secure context — `https://` in production (Vercel) or `http://localhost`/`127.0.0.1` for local testing. Testing over `file://` will not register.
 
-## Gorilla Runner (standalone demo, not yet wired in)
+## Gorilla Runner (standalone demo)
 
-`dino-demo.html` is a separate, unlinked file — a lightweight Chrome-Dino-style endless runner starring the gorilla. Canvas-based, no dependencies, no images (emoji drawn via `ctx.fillText`). Jump over bananas 🍌, duck under birds 🐦; speed ramps up over time; high score persists in `localStorage` (`gorillaDinoHighScore`). Controls: Space/↑ to jump, ↓ (hold) to duck on desktop; on-screen JUMP/DUCK buttons for mobile. Deliberately kept out of `index.html`'s bundle so the main translator stays light — the plan is to gate access behind a secret trigger (TBD) once the demo is approved, the same way the Konami code gates disco mode.
+`dino-demo.html` is a separate file — a lightweight Chrome-Dino-style endless runner starring the gorilla. Canvas-based, no dependencies, no images (emoji drawn via `ctx.fillText`, mirrored horizontally so it faces the direction of travel — the default 🦍 glyph faces left, which read as running backwards). Jump over bananas 🍌, duck under birds 🐦; speed ramps up over time; high score persists in `localStorage` (`gorillaDinoHighScore`). Controls: Space/↑ to jump, ↓ (hold) to duck on desktop; on-screen JUMP/DUCK buttons for mobile. A sprite-select row above the game lets players pick a skin before starting — four color variants of 🦍 via canvas `filter` (Classic/Gold/Shadow/Cosmic, zero extra assets) plus 🦧 Orangutan — persisted in `localStorage` (`gorillaDinoSprite`).
+
+Deliberately kept out of `index.html`'s bundle so the main translator stays light. It's gated behind a secret phrase: typing **ゴリランナー** into the main input reveals a "🕹️ ゴリラランナーで遊ぶ" button (opens `dino-demo.html` in a new tab), the same typed-easter-egg pattern as the Konami text and バナナバナナ. The unlock persists across visits via `localStorage` (`gorillaRunnerUnlocked`).
 
 ## Future Enhancements (Out of Scope)
 
@@ -302,4 +304,3 @@ Service workers require a secure context — `https://` in production (Vercel) o
 - OGP meta tags for social sharing previews
 - Sound variations / volume control
 - Maskable icon variant (safe-zone padding) for adaptive Android icon shapes
-- Wire `dino-demo.html` into the main app behind a secret trigger (word/gesture TBD)
