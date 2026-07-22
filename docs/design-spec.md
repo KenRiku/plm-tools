@@ -290,11 +290,11 @@ Sibling files alongside `index.html`, all root-relative since Vercel serves the 
 
 Service workers require a secure context — `https://` in production (Vercel) or `http://localhost`/`127.0.0.1` for local testing. Testing over `file://` will not register.
 
-## Gorilla Runner (standalone demo)
+## Gorilla Runner
 
-`dino-demo.html` is a separate file — a lightweight Chrome-Dino-style endless runner starring the gorilla. Canvas-based, no dependencies, no images (emoji drawn via `ctx.fillText`, mirrored horizontally so it faces the direction of travel — the default 🦍 glyph faces left, which read as running backwards). Jump over bananas 🍌, duck under birds 🐦; speed ramps up over time; high score persists in `localStorage` (`gorillaDinoHighScore`). Controls: Space/↑ to jump, ↓ (hold) to duck on desktop; on-screen JUMP/DUCK buttons for mobile. A sprite-select row above the game lets players pick a skin before starting — four color variants of 🦍 via canvas `filter` (Classic/Gold/Shadow/Cosmic, zero extra assets) plus 🦧 Orangutan — persisted in `localStorage` (`gorillaDinoSprite`).
+`gorilla-runner.html` is a separate file — a lightweight Chrome-Dino-style endless runner starring the gorilla. Canvas-based, no dependencies, no images (emoji drawn via `ctx.fillText`, mirrored horizontally so it faces the direction of travel — the default 🦍 glyph faces left, which read as running backwards). Jump over bananas 🍌, duck under birds 🐦; speed ramps up over time; high score persists in `localStorage` (`gorillaDinoHighScore`). Controls: Space/↑ to jump, ↓ (hold) to duck on desktop; on-screen JUMP/DUCK buttons for mobile. A sprite-select row above the game lets players pick a skin before starting — four color variants of 🦍 via canvas `filter` (Classic/Gold/Shadow/Cosmic, zero extra assets) plus 🦧 Orangutan — persisted in `localStorage` (`gorillaDinoSprite`).
 
-Deliberately kept out of `index.html`'s bundle so the main translator stays light. It's gated behind a handful of secret words: typing **ゆしま**, **バッサー**, **バナナ**, or **うほっほーい** into the main input reveals a glowing "🕹️ ゴリラランナーで遊ぶ" button (navigates to `dino-demo.html` in the same tab), the same typed-easter-egg pattern as the Konami text. The unlock persists across visits via `localStorage` (`gorillaRunnerUnlocked`).
+Deliberately kept out of `index.html`'s bundle so the main translator stays light. It's gated behind a handful of secret words: typing **ゆしま**, **バッサー**, **バナナ**, or **うほっほーい** into the main input reveals a glowing "🕹️ ゴリラランナーで遊ぶ" button (navigates to `gorilla-runner.html` in the same tab, without clearing the input), the same typed-easter-egg pattern as the Konami text. The unlock persists across visits via `localStorage` (`gorillaRunnerUnlocked`).
 
 ## Future Enhancements (Out of Scope)
 

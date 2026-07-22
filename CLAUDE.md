@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Gorilla Translator (ゴッリッラ翻訳) — a single-page comedy web app that "translates" between gorilla language (ウホウホ) and funny Japanese phrases. No AI, no backend, no dependencies. The core app is one `index.html` file with inline CSS and JS; a small set of PWA support files (manifest, service worker, icons) sit alongside it so it can be installed on a phone home screen. Deployed on Vercel.
 
-`dino-demo.html` is a separate, standalone Chrome-Dino-style gorilla runner (canvas, no dependencies) that is **not linked from `index.html`**'s markup — keeping it in its own file means it adds zero weight to the main translator's bundle. It's reachable by typing one of a few gorilla-flavored secret words into the main input, which reveals a glowing button that navigates to it (see item 15 below).
+`gorilla-runner.html` is a separate Chrome-Dino-style gorilla runner (canvas, no dependencies) that is **not linked from `index.html`**'s markup — keeping it in its own file means it adds zero weight to the main translator's bundle. It's reachable by typing one of a few gorilla-flavored secret words into the main input, which reveals a glowing button that navigates to it (see item 15 below).
 
 ## Development
 
@@ -37,7 +37,7 @@ Single `index.html` organized in sections:
   12. **Fortune cookie & facts** — `FORTUNES`/`FUN_FACTS` pools, shown via `showToast()` (now takes an optional `duration` arg) on button click; pure flavor text, no state
   13. **Translation streak** — `updateStreak()`/`renderStreak()`: calendar-day streak counter persisted in `localStorage` (`gorillaStreak`), shown as a badge under the mood chip
   14. **Gorilla evolution** — `updateHeaderEmoji()`: swaps the header emoji based on lifetime banana power in `localStorage` (`gorillaTotalBananas`, +12/translation, never resets), announcing stage-ups via toast + banana rain
-  15. **Gorilla runner unlock** — typing any of a few secret words (`RUNNER_SECRETS`: `ゆしま`/`バッサー`/`バナナ`/`うほっほーい`) into the main input reveals a glowing `.btn-runner` button that navigates to `dino-demo.html` (same tab); unlock state persists in `localStorage` (`gorillaRunnerUnlocked`) so it's a one-time discovery, checked in the same `mainInput` listener as the Konami text detector
+  15. **Gorilla runner unlock** — typing any of a few secret words (`RUNNER_SECRETS`: `ゆしま`/`バッサー`/`バナナ`/`うほっほーい`) into the main input reveals a glowing `.btn-runner` button that navigates to `gorilla-runner.html` (same tab, input left untouched); unlock state persists in `localStorage` (`gorillaRunnerUnlocked`) so it's a one-time discovery, checked in the same `mainInput` listener as the Konami text detector
 
 ## Key Design Decisions
 

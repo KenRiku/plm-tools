@@ -1488,7 +1488,7 @@
 
     // ===== GORILLA RUNNER UNLOCK (secret phrase easter egg) =====
     // Type any of a handful of gorilla-flavored words into the input to
-    // reveal a link to the standalone dino-demo.html mini-game. Stays
+    // reveal a link to the standalone gorilla-runner.html mini-game. Stays
     // unlocked across visits once found.
 
     const RUNNER_UNLOCK_KEY = 'gorillaRunnerUnlocked';
@@ -1635,7 +1635,7 @@
 
       // Gorilla runner button — navigates to the standalone mini-game
       document.getElementById('runnerBtn').addEventListener('click', function() {
-        window.location.href = 'dino-demo.html';
+        window.location.href = 'gorilla-runner.html';
       });
 
       // Name editing
@@ -1673,7 +1673,6 @@
         }
         if (RUNNER_SECRETS.includes(e.target.value.trim()) && !isRunnerUnlocked()) {
           unlockRunner(true);
-          e.target.value = '';
         }
       });
     });
