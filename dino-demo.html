@@ -80,11 +80,42 @@
   .btn-jump { background: #4CAF50; box-shadow: 0 3px 0 #388E3C; }
   .btn-duck { background: #FF9800; box-shadow: 0 3px 0 #E65100; }
   .hint { font-size: 12px; color: #8d6e63; margin-top: 14px; text-align: center; max-width: 480px; }
+  .sprite-select {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 14px;
+  }
+  .sprite-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    background: #fffde7;
+    border: 2px solid #ffe082;
+    border-radius: 12px;
+    padding: 6px 10px;
+    min-width: 64px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 700;
+    color: #3e2723;
+  }
+  .sprite-option .sprite-emoji { font-size: 28px; line-height: 1; }
+  .sprite-option.selected {
+    border-color: #FF9800;
+    background: #FFF3E0;
+    box-shadow: 0 0 0 2px #FF9800 inset;
+  }
 </style>
 </head>
 <body>
   <h1>🦍 ゴリラ ランナー</h1>
   <p class="subtitle">standalone demo — not linked from the main app yet</p>
+
+  <div class="sprite-select" id="spriteSelect"></div>
 
   <div class="game-wrap">
     <canvas id="game" width="640" height="220"></canvas>
@@ -138,6 +169,44 @@
         osc.start();
         osc.stop(audioCtx.currentTime + dur);
       } catch (e) { /* no audio, no big deal */ }
+    }
+
+    // Gorilla skins — a couple are the same emoji recolored via canvas
+    // filters (zero extra assets), plus one genuinely different critter.
+    const SPRITES = [
+      { id: 'classic',   label: 'クラシック',     emoji: '🦍', filter: 'none' },
+      { id: 'golden',    label: 'ゴールド',       emoji: '🦍', filter: 'sepia(1) saturate(4) hue-rotate(-10deg) brightness(1.15)' },
+      { id: 'shadow',    label: 'シャドウ',       emoji: '🦍', filter: 'brightness(0.4) contrast(1.3)' },
+      { id: 'cosmic',    label: 'コズミック',     emoji: '🦍', filter: 'hue-rotate(220deg) saturate(2.5) brightness(1.1)' },
+      { id: 'orangutan', label: 'オランウータン', emoji: '🦧', filter: 'none' },
+    ];
+
+    const SPRITE_KEY = 'gorillaDinoSprite';
+    function getSelectedSpriteIdx() {
+      try {
+        const idx = SPRITES.findIndex(s => s.id === localStorage.getItem(SPRITE_KEY));
+        return idx >= 0 ? idx : 0;
+      } catch (e) { return 0; }
+    }
+    let spriteIdx = getSelectedSpriteIdx();
+
+    function selectSprite(idx) {
+      spriteIdx = idx;
+      try { localStorage.setItem(SPRITE_KEY, SPRITES[idx].id); } catch (e) { /* Safari private mode */ }
+      renderSpriteSelect();
+      draw();
+    }
+
+    function renderSpriteSelect() {
+      const container = document.getElementById('spriteSelect');
+      container.innerHTML = '';
+      SPRITES.forEach(function(s, i) {
+        const btn = document.createElement('button');
+        btn.className = 'sprite-option' + (i === spriteIdx ? ' selected' : '');
+        btn.innerHTML = '<span class="sprite-emoji" style="filter:' + s.filter + '">' + s.emoji + '</span><span>' + s.label + '</span>';
+        btn.addEventListener('click', function() { selectSprite(i); });
+        container.appendChild(btn);
+      });
     }
 
     const player = {
@@ -273,15 +342,17 @@
       ctx.font = playerHeight() + 'px sans-serif';
       ctx.textBaseline = 'bottom';
       ctx.textAlign = 'left';
-      const emoji = player.ducking ? '🦧' : '🦍';
+      const sprite = SPRITES[spriteIdx];
+      const spriteW = ctx.measureText(sprite.emoji).width;
       ctx.save();
-      if (player.ducking) {
-        ctx.translate(player.x, GROUND_Y + player.y);
-        ctx.scale(1.15, 0.7);
-        ctx.fillText(emoji, 0, 0);
-      } else {
-        ctx.fillText(emoji, player.x, GROUND_Y + player.y);
-      }
+      ctx.filter = sprite.filter;
+      // The gorilla emoji faces left by default, but obstacles approach from
+      // the right (the world scrolling past = the player running rightward),
+      // so mirror horizontally to face the direction of travel.
+      ctx.translate(player.x + spriteW, GROUND_Y + player.y);
+      ctx.scale(-1, 1);
+      if (player.ducking) ctx.scale(1.15, 0.7);
+      ctx.fillText(sprite.emoji, 0, 0);
       ctx.restore();
 
       // Obstacles
@@ -348,6 +419,7 @@
     canvas.addEventListener('pointerdown', function(e) { e.preventDefault(); jump(); });
 
     // Initial idle draw
+    renderSpriteSelect();
     draw();
     document.getElementById('bestLine').textContent = 'BEST ' + getHighScore();
   </script>
