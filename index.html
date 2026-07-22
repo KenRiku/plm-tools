@@ -278,6 +278,23 @@
       transform: scale(0.95) translateY(2px);
     }
 
+    /* Gorilla Runner Button — secret unlock, made to stand out */
+    .btn-runner {
+      background: linear-gradient(135deg, #7C4DFF, #FF4081);
+      box-shadow: 0 3px 0 #4A148C;
+      animation: runnerGlow 1.6s ease-in-out infinite;
+    }
+
+    .btn-runner:active {
+      box-shadow: 0 1px 0 #4A148C;
+      transform: scale(0.95) translateY(2px);
+    }
+
+    @keyframes runnerGlow {
+      0%, 100% { box-shadow: 0 3px 0 #4A148C, 0 0 0 rgba(124, 77, 255, 0.5); }
+      50%      { box-shadow: 0 3px 0 #4A148C, 0 0 16px rgba(124, 77, 255, 0.8); }
+    }
+
     /* Secondary Buttons */
     .btn-secondary {
       background: #fffde7;
@@ -628,7 +645,7 @@
 
     <!-- Gorilla Runner (unlocked by typing the secret phrase) -->
     <div class="button-row" id="runnerRow" style="display:none;">
-      <button class="btn btn-secondary" id="runnerBtn">🕹️ ゴリラランナーで遊ぶ</button>
+      <button class="btn btn-runner" id="runnerBtn">🕹️ ゴリラランナーで遊ぶ</button>
     </div>
 
     <!-- Emoji Reactions -->
@@ -1470,11 +1487,12 @@
     }
 
     // ===== GORILLA RUNNER UNLOCK (secret phrase easter egg) =====
-    // Type "ゴリランナー" into the input to reveal a link to the standalone
-    // dino-demo.html mini-game. Stays unlocked across visits once found.
+    // Type any of a handful of gorilla-flavored words into the input to
+    // reveal a link to the standalone dino-demo.html mini-game. Stays
+    // unlocked across visits once found.
 
     const RUNNER_UNLOCK_KEY = 'gorillaRunnerUnlocked';
-    const RUNNER_SECRET = 'ゴリランナー';
+    const RUNNER_SECRETS = ['ゆしま', 'バッサー', 'バナナ', 'うほっほーい'];
 
     function isRunnerUnlocked() {
       try { return localStorage.getItem(RUNNER_UNLOCK_KEY) === '1'; } catch (e) { return false; }
@@ -1615,9 +1633,9 @@
         showToast(pick(FUN_FACTS), 4000);
       });
 
-      // Gorilla runner button — opens the standalone mini-game in a new tab
+      // Gorilla runner button — navigates to the standalone mini-game
       document.getElementById('runnerBtn').addEventListener('click', function() {
-        window.open('dino-demo.html', '_blank');
+        window.location.href = 'dino-demo.html';
       });
 
       // Name editing
@@ -1653,7 +1671,7 @@
           e.target.value = '';
           return;
         }
-        if (e.target.value.trim() === RUNNER_SECRET && !isRunnerUnlocked()) {
+        if (RUNNER_SECRETS.includes(e.target.value.trim()) && !isRunnerUnlocked()) {
           unlockRunner(true);
           e.target.value = '';
         }
