@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>ゴリラ翻訳機 — Gorilla Translator</title>
+  <title>ゴッリッラ翻訳 — Gorilla Translator</title>
 
   <!-- PWA: installable on a phone home screen -->
   <link rel="manifest" href="/manifest.json">
@@ -12,7 +12,7 @@
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="ゴリラ翻訳機">
+  <meta name="apple-mobile-web-app-title" content="ゴッリッラ翻訳">
   <style>
     /* Reset */
     * {
@@ -558,8 +558,8 @@
     <!-- Header -->
     <header class="header">
       <div class="header-emoji" id="headerEmoji">🦍</div>
-      <h1 class="header-title">GORILLA TRANSLATOR</h1>
-      <p class="header-subtitle">ゴリラ翻訳機</p>
+      <h1 class="header-title">ゴッリッラ翻訳</h1>
+      <p class="header-subtitle">GORILLA TRANSLATOR</p>
     </header>
 
     <!-- Gorilla Name Badge -->
@@ -1255,7 +1255,7 @@
     }
 
     function shareTranslation() {
-      const text = '「' + lastInput + ' → ' + lastOutput + ' 🦍」\nゴリラ翻訳機で翻訳しました';
+      const text = '「' + lastInput + ' → ' + lastOutput + ' 🦍」\nゴッリッラ翻訳で翻訳しました';
       if (navigator.share) {
         navigator.share({ text: text }).catch(function() {
           copyToClipboard(text);
