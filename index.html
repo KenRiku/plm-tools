@@ -1453,7 +1453,7 @@
         if (e.key === 'Escape') { nameInput.value = getGorillaName(); finishNameEdit(); }
       });
 
-      // Konami code → disco gorilla
+      // Konami code → disco gorilla (physical keyboard: arrow keys + B + A)
       const KONAMI = ['arrowup', 'arrowup', 'arrowdown', 'arrowdown', 'arrowleft', 'arrowright', 'arrowleft', 'arrowright', 'b', 'a'];
       let kIdx = 0;
       document.addEventListener('keydown', function(e) {
@@ -1463,6 +1463,18 @@
           if (kIdx === KONAMI.length) { toggleDisco(); kIdx = 0; }
         } else {
           kIdx = (key === KONAMI[0]) ? 1 : 0;
+        }
+      });
+
+      // Konami code → disco gorilla (typed as text, for phones with no arrow keys):
+      // type "↑↑↓↓←→←→BA" into the input box, spaces optional, letters case-insensitive.
+      const KONAMI_TEXT = '↑↑↓↓←→←→BA';
+      const mainInput = document.getElementById('mainInput');
+      mainInput.addEventListener('input', function(e) {
+        const normalized = e.target.value.replace(/\s+/g, '').toUpperCase();
+        if (normalized === KONAMI_TEXT) {
+          toggleDisco();
+          e.target.value = '';
         }
       });
     });
