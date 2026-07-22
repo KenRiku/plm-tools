@@ -178,6 +178,15 @@
       transform: scale(1.4);
     }
 
+    /* Streak Badge */
+    .streak-badge {
+      text-align: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: #FF6F00;
+      margin-bottom: 14px;
+    }
+
     /* Input Card */
     .input-card {
       background: #ffffff;
@@ -567,6 +576,9 @@
       <span id="moodLabel">ごきげん</span>
     </div>
 
+    <!-- Translation Streak -->
+    <div class="streak-badge" id="streakBadge"></div>
+
     <!-- Input Area -->
     <div class="input-card">
       <label class="input-label" for="mainInput">INPUT</label>
@@ -606,6 +618,12 @@
     <div class="button-row">
       <button class="btn btn-secondary" id="soundBtn">🔊 Sound</button>
       <button class="btn btn-secondary" id="shareBtn">📤 Share</button>
+    </div>
+
+    <!-- Fortune & Fact Buttons -->
+    <div class="button-row">
+      <button class="btn btn-secondary" id="fortuneBtn">🥠 占い</button>
+      <button class="btn btn-secondary" id="factBtn">🐒 豆知識</button>
     </div>
 
     <!-- Emoji Reactions -->
@@ -791,6 +809,41 @@
       '森羅万象、すべてはドラミングに通ず。🥁',
       '……今のは聞かなかったことにしてくれ。🤫',
       'この星は、いずれゴリラのものになる。🌍',
+    ];
+
+    // Fortune cookie prophecies (占い) — pure flavor text, not composited.
+    const FORTUNES = [
+      '今日、バナナの皮で滑る予感…気をつけろ。🍌',
+      '西の方角に幸運のバナナが眠っている。🧭🍌',
+      'ドラミングを3回すると願いが叶う。多分。🥁',
+      '今日出会う人は、みんな心の中でゴリラ。🦍',
+      '木曜日は昼寝の日。逆らうな。😴',
+      '財布を見ると、バナナの匂いがする。🍌👃',
+      '今日の運勢：普通。ゴリラ的には上出来。',
+      'その決断、ドラミングしてから決めろ。🥁',
+      '空を見上げろ。バナナ雲が見えるかもしれない。☁️🍌',
+      '今夜の夢に、キラーシルバーバックが現れる。🌙🦍',
+      '3日以内に誰かと目が合う。友情の合図だ。👀',
+      '道に落ちてるバナナの皮、踏んだら幸運。踏まれたら不運。',
+      'あなたの中のゴリラが目覚めようとしている。🦍✨',
+      '今日は静かにウホと言うだけで良いことが起きる。',
+      '未来はバナナの数だけ明るい。🍌🍌🍌',
+    ];
+
+    // Fake gorilla trivia (豆知識) — for laughs only, not real facts.
+    const FUN_FACTS = [
+      '豆知識：ゴリラは実は日本語の方言を1つ話せると言われている（諸説あり）。',
+      '豆知識：ドラミングの音は喧嘩の合図ではなく、実は感情表現であることが多い。',
+      '豆知識：ゴリラは1日に約18時間、食べるか寝るかしている。羨ましい。',
+      '豆知識：ゴリラの指紋は人間と同じくらい独特らしい。',
+      '豆知識：シルバーバックの「シルバー」は背中の毛の色に由来する。ドラマチックな響き。',
+      '豆知識：ゴリラは笑う……かもしれない、という説がある。',
+      '豆知識：ゴリラのウホは実は50種類以上あるという都市伝説がある。',
+      '豆知識：バナナは野生のゴリラの主食ではなく、実は葉っぱがメイン。びっくり。',
+      '豆知識：ゴリラは鏡に映った自分を認識できることがあるらしい。ナルシスト説。',
+      '豆知識：ドラミングの前には必ず深呼吸をしている気がする。',
+      '豆知識：ゴリラの群れのリーダーは、だいたい一番お昼寝が上手い個体。',
+      '豆知識：野生のゴリラの好きな色はバナナ色、という研究結果は存在しない。',
     ];
 
     // Compositing fragments.
@@ -1176,13 +1229,16 @@
     let lastInput = '';
     let lastOutput = '';
 
-    function showToast(message) {
+    let toastHideTimer = null;
+
+    function showToast(message, duration) {
       const toast = document.getElementById('toast');
       toast.textContent = message;
       toast.classList.add('show');
-      setTimeout(function() {
+      clearTimeout(toastHideTimer);
+      toastHideTimer = setTimeout(function() {
         toast.classList.remove('show');
-      }, 2000);
+      }, duration || 2000);
     }
 
     function copyToClipboard(text) {
@@ -1253,6 +1309,81 @@
       editBtn.style.display = '';
     }
 
+    // ===== TRANSLATION STREAK (localStorage, calendar-day based) =====
+
+    const STREAK_KEY = 'gorillaStreak';
+
+    function todayStr() {
+      const d = new Date();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return d.getFullYear() + '-' + mm + '-' + dd;
+    }
+
+    function updateStreak() {
+      let data = null;
+      try { data = JSON.parse(localStorage.getItem(STREAK_KEY)); } catch (e) { /* ignore */ }
+      const today = todayStr();
+      if (!data || !data.lastDate) {
+        data = { lastDate: today, streak: 1 };
+      } else if (data.lastDate !== today) {
+        const diffDays = Math.round((new Date(today) - new Date(data.lastDate)) / 86400000);
+        data.streak = diffDays === 1 ? data.streak + 1 : 1;
+        data.lastDate = today;
+      }
+      try { localStorage.setItem(STREAK_KEY, JSON.stringify(data)); } catch (e) { /* Safari private mode — silently skip */ }
+      return data.streak;
+    }
+
+    function renderStreak() {
+      const streak = updateStreak();
+      document.getElementById('streakBadge').textContent = streak <= 1
+        ? '🔥 今日から仲間入り！'
+        : '🔥 ' + streak + '日連続でウホってる！';
+    }
+
+    // ===== GORILLA EVOLUTION (lifetime banana power, localStorage) =====
+
+    const BANANA_TOTAL_KEY = 'gorillaTotalBananas';
+
+    function getTotalBananas() {
+      try { return parseInt(localStorage.getItem(BANANA_TOTAL_KEY), 10) || 0; } catch (e) { return 0; }
+    }
+
+    function addTotalBananas(amount) {
+      const total = getTotalBananas() + amount;
+      try { localStorage.setItem(BANANA_TOTAL_KEY, String(total)); } catch (e) { /* Safari private mode */ }
+      return total;
+    }
+
+    // Evolution stages, unlocked by cumulative banana power across all sessions.
+    const EVOLUTION_STAGES = [
+      { min: 0,    emoji: '🦍', name: 'ノーマルゴリラ' },
+      { min: 500,  emoji: '🦧', name: '覚醒ゴリラ' },
+      { min: 2000, emoji: '👑🦍', name: '伝説のゴリラ王' },
+    ];
+
+    let currentStageIdx = 0;
+
+    function stageIndexFor(total) {
+      let idx = 0;
+      for (let i = 0; i < EVOLUTION_STAGES.length; i++) {
+        if (total >= EVOLUTION_STAGES[i].min) idx = i;
+      }
+      return idx;
+    }
+
+    function updateHeaderEmoji(total, announce) {
+      const idx = stageIndexFor(total);
+      document.getElementById('headerEmoji').textContent = EVOLUTION_STAGES[idx].emoji;
+      if (announce && idx > currentStageIdx) {
+        const stage = EVOLUTION_STAGES[idx];
+        showToast('✨ 進化した！' + stage.name + 'に！' + stage.emoji, 4000);
+        bananaRain(20);
+      }
+      currentStageIdx = idx;
+    }
+
     // ===== PROGRESS BAR =====
 
     let bananaProgress = 0;
@@ -1260,6 +1391,7 @@
     function updateProgressBar() {
       const wasMax = bananaProgress >= 100;
       bananaProgress = Math.min(100, bananaProgress + 12);
+      updateHeaderEmoji(addTotalBananas(12), true);
       const fill = document.getElementById('progressFill');
       fill.style.width = bananaProgress + '%';
       const maxLabel = document.getElementById('progressMax');
@@ -1422,6 +1554,8 @@
       // Restore gorilla name & initial mood
       updateNameDisplay(getGorillaName());
       updateMoodUI();
+      renderStreak();
+      updateHeaderEmoji(getTotalBananas(), false);
 
       // Translate button
       document.getElementById('translateBtn').addEventListener('click', function() {
@@ -1443,6 +1577,17 @@
 
       // Share button
       document.getElementById('shareBtn').addEventListener('click', shareTranslation);
+
+      // Fortune cookie button (占い)
+      document.getElementById('fortuneBtn').addEventListener('click', function() {
+        showToast('🥠 ' + pick(FORTUNES), 4000);
+        animateGorilla();
+      });
+
+      // Gorilla fact button (豆知識)
+      document.getElementById('factBtn').addEventListener('click', function() {
+        showToast(pick(FUN_FACTS), 4000);
+      });
 
       // Name editing
       document.getElementById('nameEditBtn').addEventListener('click', startNameEdit);

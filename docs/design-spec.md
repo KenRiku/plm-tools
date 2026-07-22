@@ -122,9 +122,33 @@ Rapid-fire translations (each within 2.2s of the last) build a combo streak. At 
 
 ## Easter Eggs
 
-- **Konami code** (↑↑↓↓←→←→BA) → disco gorilla mode: rainbow background, spinning header emoji, banana rain. Toggle off with the code again.
+- **Konami code** (↑↑↓↓←→←→BA) → disco gorilla mode: rainbow background, spinning header emoji, banana rain. Toggle off with the code again. Two independent detectors: physical keyboard (`keydown` sequence) and typed text (type `↑↑↓↓←→←→BA` into the input box — spaces optional, letters case-insensitive — for phones with no arrow keys).
 - **`バナナバナナ`** in the input → banana祭り (30-banana rain + toast).
 - **Legendary translations** — keywords キング/ボス/王様/伝説/レジェンド/ゴッド (or a rare ~2.5% random roll) force a "legendary" phrase in a glowing gold speech bubble with a 👑 gorilla and `∞%` rating.
+
+## Gorilla Fortune Cookie (占い)
+
+"🥠 占い" button shows a random absurd gorilla prophecy in the toast, pulled from a standalone `FORTUNES` pool — no compositing, no state, just flavor text (4s display instead of the default 2s so there's time to read it).
+
+## Gorilla Facts (豆知識)
+
+"🐒 豆知識" button shows a random fake "did you know" gorilla trivia line, also via the toast (reusing the same component as fortunes/copy/disco messages).
+
+## Translation Streak
+
+A small badge under the mood chip ("🔥 N日連続でウホってる！") tracks consecutive calendar days the app has been opened, persisted in `localStorage` (`gorillaStreak`, `{lastDate, streak}`). Same day → no change; exactly one day since last visit → streak+1; any bigger gap → resets to 1. Independent of the session-scoped banana progress bar.
+
+## Gorilla Evolution
+
+The header emoji evolves based on **lifetime** banana power accumulated across all sessions (`localStorage` key `gorillaTotalBananas`, +12 per translation — same increment as the session progress bar, just never reset):
+
+| Lifetime bananas | Emoji | Stage |
+|---|---|---|
+| 0+ | 🦍 | ノーマルゴリラ |
+| 500+ | 🦧 | 覚醒ゴリラ |
+| 2000+ | 👑🦍 | 伝説のゴリラ王 |
+
+Crossing a threshold shows a one-time "✨ 進化した！" toast + banana rain, then stays evolved. Purely cosmetic — does not affect translation logic.
 
 ### Variety Mechanisms
 
@@ -266,6 +290,10 @@ Sibling files alongside `index.html`, all root-relative since Vercel serves the 
 
 Service workers require a secure context — `https://` in production (Vercel) or `http://localhost`/`127.0.0.1` for local testing. Testing over `file://` will not register.
 
+## Gorilla Runner (standalone demo, not yet wired in)
+
+`dino-demo.html` is a separate, unlinked file — a lightweight Chrome-Dino-style endless runner starring the gorilla. Canvas-based, no dependencies, no images (emoji drawn via `ctx.fillText`). Jump over bananas 🍌, duck under birds 🐦; speed ramps up over time; high score persists in `localStorage` (`gorillaDinoHighScore`). Controls: Space/↑ to jump, ↓ (hold) to duck on desktop; on-screen JUMP/DUCK buttons for mobile. Deliberately kept out of `index.html`'s bundle so the main translator stays light — the plan is to gate access behind a secret trigger (TBD) once the demo is approved, the same way the Konami code gates disco mode.
+
 ## Future Enhancements (Out of Scope)
 
 - Custom gorilla images/illustrations to replace emoji
@@ -274,3 +302,4 @@ Service workers require a secure context — `https://` in production (Vercel) o
 - OGP meta tags for social sharing previews
 - Sound variations / volume control
 - Maskable icon variant (safe-zone padding) for adaptive Android icon shapes
+- Wire `dino-demo.html` into the main app behind a secret trigger (word/gesture TBD)

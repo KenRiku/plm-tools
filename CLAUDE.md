@@ -6,6 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Gorilla Translator (ゴリラ翻訳機) — a single-page comedy web app that "translates" between gorilla language (ウホウホ) and funny Japanese phrases. No AI, no backend, no dependencies. The core app is one `index.html` file with inline CSS and JS; a small set of PWA support files (manifest, service worker, icons) sit alongside it so it can be installed on a phone home screen. Deployed on Vercel.
 
+`dino-demo.html` is a separate, standalone Chrome-Dino-style gorilla runner (canvas, no dependencies) that is **not linked from `index.html`** — it's a self-contained demo pending approval before being wired into the main app behind a secret trigger. Keeping it separate means it adds zero weight to the main translator.
+
 ## Development
 
 No build step. Open `index.html` in a browser to develop and test. If iterating on the service worker or install behavior, serve it over a local HTTP server (`python -m http.server`) rather than `file://`, since service workers require a secure context (localhost counts).
@@ -30,15 +32,19 @@ Single `index.html` organized in sections:
   7. **Name management** — localStorage-persisted gorilla name (default: ゴリ太郎)
   8. **Progress bar** — Session-scoped banana power, +12% per translation; rains bananas on first hit to MAX
   9. **Combo meter** — `registerCombo()`: rapid translations (<2.2s apart) build a streak; ≥3 shows a badge, ≥5 adds screen quake + banana rain + sound
-  10. **Easter eggs** — Konami code → disco mode (`toggleDisco`), `バナナバナナ` → banana祭り, legendary keywords (キング/ボス/王様/…) force a golden translation
+  10. **Easter eggs** — Konami code → disco mode (`toggleDisco`), triggered by either the physical-keyboard `keydown` sequence or typing `↑↑↓↓←→←→BA` as text into the input (`KONAMI_TEXT`, for phones without arrow keys); `バナナバナナ` → banana祭り; legendary keywords (キング/ボス/王様/…) force a golden translation
   11. **Mood UI, animations & event listeners** — `updateMoodUI()`, `bananaRain()`, `quakeScreen()`, mood-driven emoji reactions
+  12. **Fortune cookie & facts** — `FORTUNES`/`FUN_FACTS` pools, shown via `showToast()` (now takes an optional `duration` arg) on button click; pure flavor text, no state
+  13. **Translation streak** — `updateStreak()`/`renderStreak()`: calendar-day streak counter persisted in `localStorage` (`gorillaStreak`), shown as a badge under the mood chip
+  14. **Gorilla evolution** — `updateHeaderEmoji()`: swaps the header emoji based on lifetime banana power in `localStorage` (`gorillaTotalBananas`, +12/translation, never resets), announcing stage-ups via toast + banana rain
 
 ## Key Design Decisions
 
-- All state is session-scoped except gorilla name (localStorage)
+- Most state is session-scoped; gorilla name, translation streak, and lifetime banana power (evolution) persist via `localStorage`
 - Translation uses layered randomization, not AI: signal analysis → weighted pools → **grammar-aware compositing** → ring buffer → mood/session flavor
 - **Absurd, not broken**: inaccuracy is the joke, but output must be well-formed Japanese. Phrases are tagged by grammatical `kind` and `compose()` only attaches fragments where they stay grammatical. When adding phrases, tag them correctly (`p`/`c`/`q`/`x`/`s`) or compositing will mangle them.
 - `session.translationCount` tracks total translations (both directions); `session.gorillaTranslateCount` tracks gorilla→JP only (used for first-greeting logic); `session.mood` / `session.moodPoints` drive the mood chip and emoji reactions
+- New heavier features (like the gorilla runner game) go in their own standalone file first, unlinked from `index.html`, so the main app's payload stays light — only wire them in once approved
 
 ## PWA
 
