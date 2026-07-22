@@ -73,18 +73,58 @@ Each category has 8-15 phrases. Examples (full lists in implementation):
 - **emotional**: 気持ちが溢れてる / 複雑な気分 / ゴリラだって泣く / いろいろあんのよ
 - **melancholy**: バナナ...ないの？ / 森が恋しい / 一人は寂しいな / 雨の日は静かにしたい
 
-### Fragment Compositing
+### Fragment Compositing (grammar-aware)
 
-Build output from randomized pieces:
+Build output from randomized pieces, but only where it stays grammatical:
 
 ```
 [prefix] + [core phrase] + [suffix]
 
-prefix pool:  うーん、 / あのさ、 / ちょっと、 / ねえ、 / まあ、 / (empty)
-suffix pool:  って感じ / かな / でしょ / よね / けど / んだわ / (empty)
+prefix pool:  あのさ、 / ねえ、 / まあ、 / ちょっと、 / いや、 / つまり、 / ぶっちゃけ、 / ていうか、 / うーん、 / おい、
+suffix pool:  って感じ / かな / かも / って話
 ```
 
-Not every translation uses compositing. ~40% of the time, use a full phrase directly. ~60%, use prefix + core + suffix. This prevents the composited phrases from feeling formulaic.
+**Guiding principle: absurd, not broken.** Inaccuracy is the joke; ungrammatical mush is not. The original engine blindly appended suffixes and produced broken output like `バナナくれでしょ` (imperative + でしょ) or stacked fillers like `ちょっと、え、うそでしょって感じ`.
+
+To fix this, every phrase is tagged with a grammatical `kind`:
+
+| kind | meaning | prefix? | suffix? |
+|------|---------|---------|---------|
+| `p` | plain declarative | yes | yes |
+| `c` | command / imperative | yes | no |
+| `q` | question (already interrogative) | no | no |
+| `x` | exclamation (keeps its own `！`) | no | no |
+| `s` | set phrase (self-contained) | no | no |
+
+`compose()` attaches a prefix only to `p`/`c` phrases (and never when the phrase already opens with a comma/interjection), and a suffix only to `p` phrases that don't already end in punctuation. Suffixes are restricted to universally-safe tails (`って感じ` / `かな` / `かも` / `って話`) that stay grammatical after any noun, verb, or adjective. Question phrases carry their own `？` and are left untouched.
+
+## Gorilla Mood System
+
+The gorilla has a visible mood that drifts based on what you translate:
+
+| Mood | Face | Label | Triggered by |
+|------|------|-------|--------------|
+| chill | 😎 | ごきげん | casual / greeting |
+| hyped | 🤩 | 大興奮 | excited / passionate |
+| hangry | 😤 | おこ | question / emphasis |
+| emo | 🥺 | おセンチ | emotional / melancholy |
+| lovey | 🥰 | ラブラブ | affection keywords (好き/愛/大好き/…) |
+
+`bumpMood()` decays all mood points by 0.5 each translation and adds to the current one, with ties broken toward the freshly-bumped mood — so a single strong input flips the mood while a streak still shows some memory. Mood colors the chip, the emoji reactions, and the flavor emoji appended to translations. Cosmetic only — it does not change which phrase category is chosen.
+
+## Gorilla-o-meter (fake accuracy rating)
+
+Each translation shows a mock academic accuracy line under the result, e.g. `翻訳精度 98.3% ・ 🦍🎓 ゴリラ言語学会 認定`. Percentages are usually suspiciously precise and high (85–99.9%), but ~16% of the time go comically wrong: `404%`, over-100%, or `0.x%`. Legendary translations read `∞%`. Certifications are drawn from a joke pool (`CERTS`).
+
+## Banana Combo Meter
+
+Rapid-fire translations (each within 2.2s of the last) build a combo streak. At ≥3 a `🔥 N COMBO!!` badge pops; at ≥5 it escalates (`SUPER`, then `ULTRA GORILLA` at ≥8) and adds a screen quake, banana rain, and extra gorilla grunts. Decorative — rewards button-mashing.
+
+## Easter Eggs
+
+- **Konami code** (↑↑↓↓←→←→BA) → disco gorilla mode: rainbow background, spinning header emoji, banana rain. Toggle off with the code again.
+- **`バナナバナナ`** in the input → banana祭り (30-banana rain + toast).
+- **Legendary translations** — keywords キング/ボス/王様/伝説/レジェンド/ゴッド (or a rare ~2.5% random roll) force a "legendary" phrase in a glowing gold speech bubble with a 👑 gorilla and `∞%` rating.
 
 ### Variety Mechanisms
 

@@ -18,6 +18,29 @@
       background: linear-gradient(180deg, #FFC107 0%, #FFD54F 50%, #FFF8E1 100%);
       min-height: 100vh;
       color: #3e2723;
+      overflow-x: hidden;
+    }
+
+    /* Disco mode — Konami easter egg */
+    body.disco {
+      animation: discoBg 1.2s linear infinite;
+    }
+
+    @keyframes discoBg {
+      0%   { background: linear-gradient(180deg, #FF5252, #FFD740); }
+      25%  { background: linear-gradient(180deg, #40C4FF, #B388FF); }
+      50%  { background: linear-gradient(180deg, #69F0AE, #FFFF00); }
+      75%  { background: linear-gradient(180deg, #FF4081, #FFAB40); }
+      100% { background: linear-gradient(180deg, #FF5252, #FFD740); }
+    }
+
+    body.disco .header-emoji {
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
     }
 
     /* Container */
@@ -27,16 +50,29 @@
       padding: 20px 16px 40px;
     }
 
+    .container.quake {
+      animation: quake 0.45s ease;
+    }
+
+    @keyframes quake {
+      0%, 100% { transform: translate(0, 0); }
+      20% { transform: translate(-5px, 3px) rotate(-0.6deg); }
+      40% { transform: translate(5px, -3px) rotate(0.6deg); }
+      60% { transform: translate(-4px, 2px) rotate(-0.4deg); }
+      80% { transform: translate(4px, -2px) rotate(0.4deg); }
+    }
+
     /* Header */
     .header {
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
 
     .header-emoji {
       font-size: 64px;
       line-height: 1.1;
       margin-bottom: 8px;
+      display: inline-block;
     }
 
     .header-title {
@@ -59,7 +95,7 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
-      margin-bottom: 16px;
+      margin-bottom: 10px;
     }
 
     .name-badge-icon {
@@ -104,6 +140,33 @@
 
     .name-badge-input:focus {
       border-color: #ffc107;
+    }
+
+    /* Mood Chip */
+    .mood-chip {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin: 0 auto 16px;
+      width: fit-content;
+      border: 2px solid #4CAF50;
+      color: #4CAF50;
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 3px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      transition: color 0.3s ease, border-color 0.3s ease;
+    }
+
+    .mood-chip-face {
+      font-size: 18px;
+      transition: transform 0.2s ease;
+    }
+
+    .mood-chip.bump .mood-chip-face {
+      transform: scale(1.4);
     }
 
     /* Input Card */
@@ -238,6 +301,18 @@
       animation: bubbleIn 0.3s ease forwards;
     }
 
+    /* Legendary golden bubble — easter egg */
+    .speech-bubble.legendary {
+      background: linear-gradient(135deg, #FFF8E1, #FFECB3);
+      box-shadow: 0 0 0 3px #FFD54F, 0 6px 24px rgba(255, 179, 0, 0.5);
+      animation: bubbleIn 0.3s ease forwards, goldGlow 1.4s ease-in-out infinite;
+    }
+
+    @keyframes goldGlow {
+      0%, 100% { box-shadow: 0 0 0 3px #FFD54F, 0 6px 24px rgba(255, 179, 0, 0.4); }
+      50%      { box-shadow: 0 0 0 4px #FFC107, 0 8px 32px rgba(255, 143, 0, 0.7); }
+    }
+
     @keyframes bubbleIn {
       from {
         opacity: 0;
@@ -262,12 +337,48 @@
       border-bottom: 10px solid #ffffff;
     }
 
+    .speech-bubble.legendary .speech-bubble-arrow {
+      border-bottom-color: #FFECB3;
+    }
+
     .speech-bubble-text {
       font-size: 22px;
       font-weight: 700;
       color: #3e2723;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
       word-break: break-word;
+    }
+
+    /* Gorilla-o-meter rating row */
+    .meter-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      border-top: 1px dashed #ffe082;
+      padding-top: 8px;
+      margin-bottom: 6px;
+    }
+
+    .meter-score {
+      font-size: 12px;
+      font-weight: 800;
+      color: #43A047;
+      background: #E8F5E9;
+      border-radius: 10px;
+      padding: 2px 8px;
+      white-space: nowrap;
+    }
+
+    .meter-score.wild {
+      color: #E65100;
+      background: #FFF3E0;
+    }
+
+    .meter-cert {
+      font-size: 11px;
+      color: #8d6e63;
+      font-weight: 600;
     }
 
     .speech-bubble-subtitle {
@@ -345,6 +456,61 @@
       100% { transform: translateX(0) rotate(0deg); }
     }
 
+    /* Combo Badge */
+    .combo-badge {
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%) scale(0.5);
+      background: #FF6F00;
+      color: #fff;
+      font-weight: 900;
+      font-size: 20px;
+      letter-spacing: 1px;
+      padding: 8px 20px;
+      border-radius: 30px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+      z-index: 9998;
+      opacity: 0;
+      pointer-events: none;
+      white-space: nowrap;
+      transition: opacity 0.15s ease;
+    }
+
+    .combo-badge.pop {
+      animation: comboPop 0.9s ease forwards;
+    }
+
+    @keyframes comboPop {
+      0%   { opacity: 0; transform: translateX(-50%) scale(0.4) rotate(-8deg); }
+      25%  { opacity: 1; transform: translateX(-50%) scale(1.25) rotate(4deg); }
+      45%  { transform: translateX(-50%) scale(1) rotate(-2deg); }
+      80%  { opacity: 1; transform: translateX(-50%) scale(1) rotate(0deg); }
+      100% { opacity: 0; transform: translateX(-50%) scale(0.9); }
+    }
+
+    /* Banana Rain */
+    .banana-rain {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 9997;
+    }
+
+    .banana-drop {
+      position: fixed;
+      top: -48px;
+      animation: fall linear forwards;
+      will-change: transform;
+    }
+
+    @keyframes fall {
+      0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
+      90%  { opacity: 1; }
+      100% { transform: translateY(110vh) rotate(540deg); opacity: 0.6; }
+    }
+
     /* Toast */
     .toast {
       position: fixed;
@@ -369,11 +535,11 @@
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="container" id="container">
 
     <!-- Header -->
     <header class="header">
-      <div class="header-emoji">🦍</div>
+      <div class="header-emoji" id="headerEmoji">🦍</div>
       <h1 class="header-title">GORILLA TRANSLATOR</h1>
       <p class="header-subtitle">ゴリラ翻訳機</p>
     </header>
@@ -384,6 +550,12 @@
       <span class="name-badge-text" id="gorillaNameDisplay">ゴリ太郎</span>
       <button class="name-badge-edit" id="nameEditBtn" aria-label="名前を変更">✏️</button>
       <input class="name-badge-input" id="gorillaNameInput" type="text" maxlength="20" style="display:none;">
+    </div>
+
+    <!-- Gorilla Mood Chip -->
+    <div class="mood-chip" id="moodChip">
+      <span class="mood-chip-face" id="moodFace">😎</span>
+      <span id="moodLabel">ごきげん</span>
     </div>
 
     <!-- Input Area -->
@@ -401,9 +573,13 @@
     <!-- Output Speech Bubble -->
     <div class="output-area" id="outputArea" style="display:none;">
       <div class="output-gorilla" id="outputGorilla">🦍</div>
-      <div class="speech-bubble">
+      <div class="speech-bubble" id="speechBubble">
         <div class="speech-bubble-arrow"></div>
         <div class="speech-bubble-text" id="outputText"></div>
+        <div class="meter-row" id="meterRow">
+          <span class="meter-score" id="meterScore"></span>
+          <span class="meter-cert" id="meterCert"></span>
+        </div>
         <div class="speech-bubble-subtitle" id="outputSubtitle">ゴリ太郎の翻訳結果</div>
       </div>
     </div>
@@ -426,166 +602,193 @@
     <!-- Emoji Reactions -->
     <div class="emoji-reactions" id="emojiReactions">🦍🍌😂</div>
 
-    <!-- Toast -->
-    <div class="toast" id="toast"></div>
-
   </div>
+
+  <!-- Combo Badge, Banana Rain & Toast (fixed overlays) -->
+  <div class="combo-badge" id="comboBadge"></div>
+  <div class="banana-rain" id="bananaRain"></div>
+  <div class="toast" id="toast"></div>
 
   <script>
     // ============================================================
+    // Small helpers
+    // ============================================================
+    const rand = (n) => Math.floor(Math.random() * n);
+    const pick = (arr) => arr[rand(arr.length)];
+
+    // ============================================================
     // TASK 3: Translation Data — Phrase Pools
+    //
+    // Each phrase is [text, kind]. `kind` controls how compositing
+    // (prefix/suffix) may attach so output stays grammatical:
+    //   'p' plain declarative  — prefix OK, safe suffix OK
+    //   'c' command/imperative — prefix OK, NO suffix
+    //   'q' question           — as-is (already interrogative)
+    //   'x' exclamation        — as-is (keeps its own !)
+    //   's' set phrase         — self-contained, leave untouched
     // ============================================================
 
     const PHRASE_POOLS = {
       greeting: [
-        'よう！',
-        'やあ',
-        'ウホ、来たな',
-        'おう、待ってたぞ',
-        'やっと来たか',
-        'おっ、誰か来た',
-        'ウホッ、いらっしゃい',
-        'よく来たな',
-        'お、久しぶり',
-        'ウホ、よく来た',
+        ['よう！', 'x'],
+        ['やあ', 'x'],
+        ['ウホ、来たな', 's'],
+        ['おう、待ってたぞ', 's'],
+        ['やっと来たか', 's'],
+        ['おっ、誰か来た', 's'],
+        ['ウホッ、いらっしゃい', 's'],
+        ['よく来たな', 's'],
+        ['お、久しぶり', 's'],
+        ['ウホ、よく来た', 's'],
       ],
       question: [
-        'それマジ',
-        'ほんとに',
-        'え、うそでしょ',
-        '聞いてる',
-        'なんで',
-        'マジか',
-        'どういうこと',
-        '誰に聞いてんの',
-        'は',
-        'それ聞く',
-        'なんの話',
-        '知らんけど',
-        'え、なに',
-        'ゴリラに聞くな',
-        '答えはバナナの中にある',
-        'ウホで返していい',
-        '質問が多いな',
-        '考えたことなかった',
-        '難しいこと聞くな',
+        ['それマジ？', 'q'],
+        ['ほんとに？', 'q'],
+        ['え、うそでしょ？', 'q'],
+        ['聞いてる？', 'q'],
+        ['なんで？', 'q'],
+        ['マジか…', 's'],
+        ['どういうこと？', 'q'],
+        ['誰に聞いてんの？', 'q'],
+        ['は？', 'q'],
+        ['それ聞く？', 'q'],
+        ['なんの話？', 'q'],
+        ['知らんけど', 'p'],
+        ['え、なに？', 'q'],
+        ['ゴリラに聞くな', 'c'],
+        ['答えはバナナの中にある', 'p'],
+        ['ウホで返していい？', 'q'],
+        ['質問が多いな', 'p'],
+        ['考えたことなかった', 'p'],
+        ['難しいこと聞くな', 'c'],
       ],
       excited: [
-        'めっちゃテンション上がる',
-        'バナナ見つけた',
-        '最高かよ',
-        'やばいやばい',
-        'ドラミング始めるわ',
-        'うおおおお',
-        'テンションMAX',
-        'ジャングルが揺れる',
-        '止まらねえ',
-        'これはアツい',
-        'バナナ100本分の喜び',
-        '全身で喜んでる',
-        '木から落ちそうなくらい嬉しい',
-        '今すぐドラミングしたい',
-        'バナナ奢ってやる',
-        'ゴリラ史上最高の瞬間',
-        '興奮して毛が逆立ってる',
+        ['めっちゃテンション上がる！', 'x'],
+        ['バナナ見つけた！', 'x'],
+        ['最高かよ！', 'x'],
+        ['やばいやばい！', 'x'],
+        ['ドラミング始めるわ！', 'x'],
+        ['うおおおお！', 'x'],
+        ['テンションMAX！', 'x'],
+        ['ジャングルが揺れる！', 'x'],
+        ['止まらねえ！', 'x'],
+        ['これはアツい！', 'x'],
+        ['バナナ100本分の喜び！', 'x'],
+        ['全身で喜んでる！', 'x'],
+        ['木から落ちそうなくらい嬉しい！', 'x'],
+        ['今すぐドラミングしたい！', 'x'],
+        ['バナナ奢ってやる！', 'x'],
+        ['ゴリラ史上最高の瞬間！', 'x'],
+        ['興奮して毛が逆立ってる！', 'x'],
       ],
       passionate: [
-        '今日は語りたい気分',
-        '聞いてくれよ、長い話がある',
-        'めっちゃ興奮してる',
-        '止まらないんだわ',
-        '言いたいことがありすぎる',
-        '熱い思いを伝えたい',
-        '胸がいっぱい',
-        '今のオレを見てくれ',
-        '全力で伝える',
-        '魂の叫びを聞け',
-        'ジャングル中に響かせたい',
-        '夜通し語れる',
-        'この気持ち、ドラミングじゃ足りない',
-        'バナナより大事な話がある',
-        '黙って聞いてくれ',
+        ['今日は語りたい気分', 'p'],
+        ['聞いてくれよ、長い話がある', 's'],
+        ['めっちゃ興奮してる', 'p'],
+        ['止まらないんだわ', 's'],
+        ['言いたいことがありすぎる', 'p'],
+        ['熱い思いを伝えたい', 'p'],
+        ['胸がいっぱいだ', 'p'],
+        ['今のオレを見てくれ', 'c'],
+        ['全力で伝える', 'p'],
+        ['魂の叫びを聞け', 'c'],
+        ['ジャングル中に響かせたい', 'p'],
+        ['夜通し語れる', 'p'],
+        ['この気持ち、ドラミングじゃ足りない', 's'],
+        ['バナナより大事な話がある', 'p'],
+        ['黙って聞いてくれ', 'c'],
       ],
       casual: [
-        'バナナくれ',
-        '今ヒマ',
-        'それわかる',
-        'ちょっと落ち着け',
-        '仲間呼んでる',
-        'よう',
-        'ん',
-        'まあね',
-        'そうだな',
-        'べつに',
-        'ふーん',
-        'あー',
-        'ヒマだな',
-        'なんかない',
-        '暇すぎてドラミングしてた',
-        '木の上から見てた',
-        'バナナでも食う',
-        '特に何もない',
-        'ゴリラ的には普通',
-        '昼寝してた',
-        'まあまあだな',
+        ['バナナくれ', 'c'],
+        ['今ヒマ？', 'q'],
+        ['それわかる', 'p'],
+        ['ちょっと落ち着け', 'c'],
+        ['仲間呼んでる', 'p'],
+        ['よう', 'x'],
+        ['ん？', 'q'],
+        ['まあね', 's'],
+        ['そうだな', 's'],
+        ['べつに', 's'],
+        ['ふーん', 's'],
+        ['あー', 'x'],
+        ['ヒマだな', 'p'],
+        ['なんかない？', 'q'],
+        ['暇すぎてドラミングしてた', 'p'],
+        ['木の上から見てた', 'p'],
+        ['バナナでも食う？', 'q'],
+        ['特に何もない', 'p'],
+        ['ゴリラ的には普通', 'p'],
+        ['昼寝してた', 'p'],
+        ['まあまあだな', 's'],
       ],
       emphasis: [
-        '何回言わせんの',
-        '大事なことだから',
-        'しつこいって言われる',
-        'だから言ったじゃん',
-        'いい加減わかれ',
-        'もう一回言うぞ',
-        '聞いてなかったのか',
-        'メモしろ',
-        '覚えとけ',
-        'ここテストに出る',
-        'ドラミングで伝わらんか',
-        'ゴリラは二度言わない主義',
-        '耳の穴かっぽじれ',
-        'バナナに書いて渡すぞ',
-        '壁に彫るレベル',
+        ['何回言わせんの', 's'],
+        ['大事なことだから', 'p'],
+        ['しつこいって言われる', 'p'],
+        ['だから言ったじゃん', 's'],
+        ['いい加減わかれ', 'c'],
+        ['もう一回言うぞ', 's'],
+        ['聞いてなかったのか', 'q'],
+        ['メモしろ', 'c'],
+        ['覚えとけ', 'c'],
+        ['ここテストに出る', 'p'],
+        ['ドラミングで伝わらんか', 's'],
+        ['ゴリラは二度言わない主義', 'p'],
+        ['耳の穴かっぽじれ', 'c'],
+        ['バナナに書いて渡すぞ', 's'],
+        ['壁に彫るレベル', 'p'],
       ],
       emotional: [
-        '気持ちが溢れてる',
-        '複雑な気分',
-        'ゴリラだって泣く',
-        'いろいろあんのよ',
-        '言葉にできない',
-        '胸がぎゅっとなる',
-        '感情のジェットコースター',
-        'わかってほしい',
-        '今日は色々あったんだ',
-        'ゴリラの心は繊細',
-        'ウホじゃ伝わらない気持ち',
-        'ドラミングが切ない音になる',
-        '森の中で一人泣いてた',
-        'バナナの味がしない',
-        '仲間に会いたい',
+        ['気持ちが溢れてる', 'p'],
+        ['複雑な気分', 'p'],
+        ['ゴリラだって泣く', 'p'],
+        ['いろいろあんのよ', 's'],
+        ['言葉にできない', 'p'],
+        ['胸がぎゅっとなる', 'p'],
+        ['感情のジェットコースター', 'p'],
+        ['わかってほしい', 'p'],
+        ['今日は色々あったんだ', 's'],
+        ['ゴリラの心は繊細', 'p'],
+        ['ウホじゃ伝わらない気持ち', 'p'],
+        ['ドラミングが切ない音になる', 'p'],
+        ['森の中で一人泣いてた', 'p'],
+        ['バナナの味がしない', 'p'],
+        ['仲間に会いたい', 'p'],
       ],
       melancholy: [
-        'バナナ...ないの',
-        '森が恋しい',
-        '一人は寂しいな',
-        '雨の日は静かにしたい',
-        'ため息しか出ない',
-        '遠い目してる',
-        'ちょっと放っておいて',
-        '木の上でぼーっとしたい',
-        '今日は静かにドラミング',
-        '夕日がきれいだな',
-        'バナナも半分しかない',
-        '誰かそばにいてくれ',
-        '風が冷たい',
-        '何もしたくない日もある',
+        ['バナナ…ないの？', 'q'],
+        ['森が恋しい', 'p'],
+        ['一人は寂しいな', 's'],
+        ['雨の日は静かにしたい', 'p'],
+        ['ため息しか出ない', 'p'],
+        ['遠い目してる', 'p'],
+        ['ちょっと放っておいて', 'c'],
+        ['木の上でぼーっとしたい', 'p'],
+        ['今日は静かにドラミング', 'p'],
+        ['夕日がきれいだな', 's'],
+        ['バナナも半分しかない', 'p'],
+        ['誰かそばにいてくれ', 'c'],
+        ['風が冷たい', 'p'],
+        ['何もしたくない日もある', 'p'],
       ],
     };
 
-    const PREFIXES = ['', '', '', 'うーん、', 'あのさ、', 'ちょっと、', 'ねえ、', 'まあ、', 'おい、', 'いや、', 'つまり、', 'ぶっちゃけ、', 'ていうか、'];
+    // Legendary golden-bubble phrases (easter egg)
+    const LEGENDARY = [
+      '……我こそはジャングルの王である。ひざまずけ。👑',
+      'バナナは……皮にこそ真実が宿る。悟ったわ。🍌✨',
+      'ウホは言語ではない。生き方だ。🦍',
+      '実は……オレ、二足歩行もイケる。🚶',
+      '森羅万象、すべてはドラミングに通ず。🥁',
+      '……今のは聞かなかったことにしてくれ。🤫',
+      'この星は、いずれゴリラのものになる。🌍',
+    ];
 
-    const SUFFIXES = ['', '', '', 'って感じ', 'かな', 'でしょ', 'よね', 'けど', 'んだわ', 'じゃん', 'だろ', 'っしょ', 'わな', 'だと思う', 'みたいな'];
-
-    const BONUS_EMOJI = ['🍌', '💪', '🦍', '🌴', '😤', '✨', '🔥'];
+    // Compositing fragments.
+    // Prefixes are universally-safe leading fillers.
+    // Suffixes are ONLY tails that stay grammatical after any noun/verb/adj.
+    const PREFIXES = ['あのさ、', 'ねえ、', 'まあ、', 'ちょっと、', 'いや、', 'つまり、', 'ぶっちゃけ、', 'ていうか、', 'うーん、', 'おい、'];
+    const SUFFIXES = ['って感じ', 'かな', 'かも', 'って話'];
 
     const GORILLA_SOUNDS = {
       short_kata:  ['ウホ', 'ウッホ', 'ホ'],
@@ -594,10 +797,29 @@
       medium_hira: ['うほうほ', 'うほっうほ'],
       long_kata:   ['ウホウホウホ', 'ウッホウッホ', 'ウホウホウッホ'],
       long_hira:   ['うほうほうほ', 'うっほうっほ'],
-      dramatic:    ['ウッ...', 'ドンドン🥁', '*胸を叩く*', '...', 'ウホォォォ'],
+      dramatic:    ['ウッ…', 'ドンドン🥁', '*胸を叩く*', '…', 'ウホォォォ'],
     };
 
     const PARTICLES = /([はがをにでともの]|[よねか](?=[。！？、]|$)|[。！？、\n])/;
+
+    // ============================================================
+    // Mood system
+    // ============================================================
+
+    const MOODS = {
+      chill:  { face: '😎', label: 'ごきげん', color: '#4CAF50', emojis: ['🦍😎🍌', '🦍🌴✨', '😎🦍👍'], tails: ['', '', '🍌', '😎', '🌴'] },
+      hyped:  { face: '🤩', label: '大興奮',   color: '#FB8C00', emojis: ['🦍🔥🍌', '🤩🦍💥', '🍌🦍⚡'], tails: ['🔥', '💥', '⚡', '🔥'] },
+      hangry: { face: '😤', label: 'おこ',     color: '#E53935', emojis: ['🦍😤💢', '💢🦍🍌', '😤🦍🔥'], tails: ['💢', '😤', '🔥', '💢'] },
+      emo:    { face: '🥺', label: 'おセンチ', color: '#5C6BC0', emojis: ['🦍🥺💧', '🌧🦍💭', '🥺🦍🍂'], tails: ['💧', '🥺', '🍂', '💧'] },
+      lovey:  { face: '🥰', label: 'ラブラブ', color: '#EC407A', emojis: ['🦍🥰💕', '💕🦍🍌', '🥰🦍✨'], tails: ['💕', '🥰', '✨', '💕'] },
+    };
+
+    const CATEGORY_MOOD = {
+      excited: 'hyped', passionate: 'hyped',
+      question: 'hangry', emphasis: 'hangry',
+      emotional: 'emo', melancholy: 'emo',
+      casual: 'chill', greeting: 'chill',
+    };
 
     // ============================================================
     // TASK 4: Translation Engine — Gorilla → Japanese
@@ -609,13 +831,15 @@
       ringBuffer: [],
       ringBufferSize: 8,
       weights: {},
+      mood: 'chill',
+      moodPoints: { chill: 1, hyped: 0, hangry: 0, emo: 0, lovey: 0 },
     };
 
     function initWeights() {
       for (const category in PHRASE_POOLS) {
         session.weights[category] = {};
-        for (const phrase of PHRASE_POOLS[category]) {
-          session.weights[category][phrase] = 1;
+        for (const entry of PHRASE_POOLS[category]) {
+          session.weights[category][entry[0]] = 1;
         }
       }
     }
@@ -623,58 +847,92 @@
 
     function analyzeSignals(input) {
       const exclamations = (input.match(/[!！]/g) || []).length;
+      // A trailing-off "…" reads as wistful, not hyped — check sadness before
+      // the repeated-character excitement rule (which would otherwise catch "...").
       if (/[?？]/.test(input)) return { category: 'question', intensity: 1 };
-      if (exclamations >= 3 || /(.)\1{4,}/.test(input)) return { category: 'excited', intensity: 3 };
-      if (exclamations >= 1 || /(.)\1{2,}/.test(input)) return { category: 'excited', intensity: exclamations || 1 };
-      if (/\.{3}|。。。/.test(input)) return { category: 'melancholy', intensity: 1 };
+      if (/\.{3}|。。。|…|〜{2,}|～{2,}/.test(input)) return { category: 'melancholy', intensity: 1 };
+      // Repeated NON-punctuation chars (ウウウ, ！！！) signal excitement.
+      if (exclamations >= 3 || /([^\s.。！!？?…、])\1{4,}/.test(input)) return { category: 'excited', intensity: 3 };
+      if (exclamations >= 1 || /([^\s.。！!？?…、])\1{2,}/.test(input)) return { category: 'excited', intensity: exclamations || 1 };
       if (input.length > 20) return { category: 'passionate', intensity: Math.min(3, Math.floor(input.length / 20)) };
       if (/(.{2,3})\1{2,}/.test(input)) return { category: 'emphasis', intensity: 2 };
       if (
-        /[\u30A0-\u30FF]/.test(input) &&
-        /[\u3040-\u309F]/.test(input) &&
+        /[゠-ヿ]/.test(input) &&
+        /[぀-ゟ]/.test(input) &&
         (input.match(/[。！？、…]/g) || []).length >= 2
       ) return { category: 'emotional', intensity: 1 };
       if (input.length < 5) return { category: 'casual', intensity: 1 };
       return { category: 'casual', intensity: 1 };
     }
 
+    function bumpMood(category, input) {
+      // Decay all moods so the most recent translations dominate the reading.
+      // 0.5 keeps a little memory (a streak still shows) while letting a single
+      // strong input flip the mood — the gorilla reacts to what you just said.
+      for (const k in session.moodPoints) session.moodPoints[k] *= 0.5;
+      let mood = CATEGORY_MOOD[category] || 'chill';
+      // Affection keywords override toward lovey.
+      if (/好き|愛|大好き|恋|ハート|💕|❤|😍|🥰/.test(input)) mood = 'lovey';
+      session.moodPoints[mood] += 2;
+      // Current mood = highest points; ties go to the mood we just bumped so a
+      // fresh input wins over a decayed streak of equal weight.
+      const maxVal = Math.max(...Object.values(session.moodPoints));
+      session.mood = session.moodPoints[mood] === maxVal
+        ? mood
+        : Object.keys(session.moodPoints).find(k => session.moodPoints[k] === maxVal);
+    }
+
     function weightedPick(category) {
       const pool = PHRASE_POOLS[category];
       const weights = session.weights[category];
 
-      let total = pool.reduce((sum, p) => sum + weights[p], 0);
+      let total = pool.reduce((sum, e) => sum + weights[e[0]], 0);
       // Reset when all weights have decayed near zero
       if (total < pool.length * 0.2) {
-        for (const p of pool) weights[p] = 1;
+        for (const e of pool) weights[e[0]] = 1;
         total = pool.length;
       }
 
-      let rand = Math.random() * total;
-      for (const phrase of pool) {
-        rand -= weights[phrase];
-        if (rand <= 0) {
-          weights[phrase] = Math.max(0.1, weights[phrase] * 0.5);
-          return phrase;
+      let r = Math.random() * total;
+      for (const entry of pool) {
+        r -= weights[entry[0]];
+        if (r <= 0) {
+          weights[entry[0]] = Math.max(0.1, weights[entry[0]] * 0.5);
+          return entry;
         }
       }
-      // fallback: last phrase
+      // fallback: last entry
       const last = pool[pool.length - 1];
-      weights[last] = Math.max(0.1, weights[last] * 0.5);
+      weights[last[0]] = Math.max(0.1, weights[last[0]] * 0.5);
       return last;
     }
 
-    function maybeComposite(core) {
-      if (Math.random() < 0.4) return core;
-      const prefix = PREFIXES[Math.floor(Math.random() * PREFIXES.length)];
-      const endsWithPunctuation = /[？！。…?!.]$/.test(core);
-      const suffix = endsWithPunctuation ? '' : SUFFIXES[Math.floor(Math.random() * SUFFIXES.length)];
-      return prefix + core + suffix;
+    // Grammar-aware compositing. Only attaches a prefix/suffix where the
+    // phrase kind allows it, so results stay well-formed Japanese.
+    function compose(entry) {
+      let [core, kind] = entry;
+
+      // Prefix: leading fillers work before declaratives & commands.
+      // Skip when the phrase already opens with its own interjection (comma).
+      if ((kind === 'p' || kind === 'c') && !core.includes('、') && Math.random() < 0.35) {
+        core = pick(PREFIXES) + core;
+      }
+
+      // Suffix: only plain declaratives, and never onto something that
+      // already ends in punctuation or carries a comma.
+      if (kind === 'p' && !/[！？。…、]/.test(core) && Math.random() < 0.45) {
+        core = core + pick(SUFFIXES);
+      }
+
+      return core;
     }
 
     function addIntensity(text, intensity) {
       if (intensity <= 1) return text;
+      // Only escalate phrases that end on an exclamation; never touch
+      // questions or trailing ellipses.
+      if (!/[！!]$/.test(text)) return text;
       const bangs = '！'.repeat(Math.min(intensity, 3));
-      // Strip existing trailing punctuation before adding intensity
       const stripped = text.replace(/[！!]+$/, '');
       return stripped + bangs;
     }
@@ -690,48 +948,63 @@
       }
     }
 
+    // Legendary trigger: certain "royal" keywords, or a rare random roll.
+    function isLegendary(input) {
+      if (/キング|ボス|王様|伝説|レジェンド|ゴッド/.test(input)) return true;
+      return Math.random() < 0.025;
+    }
+
+    function moodTail() {
+      const tails = MOODS[session.mood].tails;
+      return pick(tails);
+    }
+
     function translateGorillaToJapanese(input) {
       if (!input || input.trim() === '') return null;
 
       session.translationCount++;
       session.gorillaTranslateCount++;
 
-      // First gorilla→JP translation: 50% chance greeting, 50% normal analysis
-      if (session.gorillaTranslateCount === 1 && Math.random() < 0.5) {
-        const greetings = PHRASE_POOLS.greeting;
-        const greeting = greetings[Math.floor(Math.random() * greetings.length)];
-        pushRingBuffer(greeting);
-        return greeting;
+      const { category, intensity } = analyzeSignals(input);
+      bumpMood(category, input);
+
+      // Legendary golden translation (easter egg).
+      if (isLegendary(input)) {
+        const text = pick(LEGENDARY);
+        pushRingBuffer(text);
+        return { text: text, legendary: true };
       }
 
-      const { category, intensity } = analyzeSignals(input);
+      // First gorilla→JP translation: usually a greeting.
+      if (session.gorillaTranslateCount === 1 && Math.random() < 0.6) {
+        const greeting = compose(weightedPick('greeting'));
+        pushRingBuffer(greeting);
+        return { text: greeting, legendary: false };
+      }
 
       let result = null;
       for (let i = 0; i < 10; i++) {
-        const picked = weightedPick(category);
-        const composite = maybeComposite(picked);
+        const composite = compose(weightedPick(category));
         if (!isInRingBuffer(composite)) {
           result = composite;
           break;
         }
       }
-      // If all attempts were in ring buffer, use last composite anyway
       if (result === null) {
-        result = maybeComposite(weightedPick(category));
+        result = compose(weightedPick(category));
       }
 
       result = addIntensity(result, intensity);
       pushRingBuffer(result);
 
+      // Flavor tail: banana overload at MAX, otherwise a mood-colored emoji.
       if (bananaProgress >= 100) {
-        const count = 1 + Math.floor(Math.random() * 3);
-        result = result + '🍌'.repeat(count);
-      } else if (session.translationCount >= 6 && Math.random() < 0.4) {
-        const emoji = BONUS_EMOJI[Math.floor(Math.random() * BONUS_EMOJI.length)];
-        result = result + emoji;
+        result = result + '🍌'.repeat(1 + rand(3));
+      } else if (session.translationCount >= 3 && Math.random() < 0.35) {
+        result = result + moodTail();
       }
 
-      return result;
+      return { text: result, legendary: false };
     }
 
     // ============================================================
@@ -775,13 +1048,13 @@
       let sound;
       if (len <= 3) {
         const pool = useKata ? GORILLA_SOUNDS.short_kata : GORILLA_SOUNDS.short_hira;
-        sound = pool[Math.floor(Math.random() * pool.length)];
+        sound = pick(pool);
       } else if (len <= 7) {
         const pool = useKata ? GORILLA_SOUNDS.medium_kata : GORILLA_SOUNDS.medium_hira;
-        sound = pool[Math.floor(Math.random() * pool.length)];
+        sound = pick(pool);
       } else {
         const pool = useKata ? GORILLA_SOUNDS.long_kata : GORILLA_SOUNDS.long_hira;
-        sound = pool[Math.floor(Math.random() * pool.length)];
+        sound = pick(pool);
       }
 
       // Preserve trailing punctuation with gorilla flavor
@@ -795,6 +1068,7 @@
       if (!input || input.trim() === '') return null;
 
       session.translationCount++;
+      bumpMood(analyzeSignals(input).category, input);
 
       const chunks = chunkJapanese(input);
       const gorillaParts = [];
@@ -803,17 +1077,53 @@
         gorillaParts.push(chunkToGorilla(chunks[i]));
         // 15% chance to insert a dramatic sound between chunks (not after last)
         if (i < chunks.length - 1 && Math.random() < 0.15) {
-          const dramatic = GORILLA_SOUNDS.dramatic;
-          gorillaParts.push(dramatic[Math.floor(Math.random() * dramatic.length)]);
+          gorillaParts.push(pick(GORILLA_SOUNDS.dramatic));
         }
       }
 
       let result = gorillaParts.join(' ');
       if (bananaProgress >= 100) {
-        const count = 1 + Math.floor(Math.random() * 3);
-        result = result + '🍌'.repeat(count);
+        result = result + '🍌'.repeat(1 + rand(3));
       }
-      return result;
+      return { text: result, legendary: false };
+    }
+
+    // ============================================================
+    // Gorilla-o-meter — fake academic accuracy rating
+    // ============================================================
+
+    const CERTS = [
+      'ゴリラ言語学会 認定',
+      'バナナ大学 監修',
+      'ドラミング検定1級',
+      'ジャングルISO 取得',
+      '全国ウホウホ協会 公認',
+      '霊長類翻訳ギルド 保証',
+      '森の長老 お墨付き',
+      'バナナソムリエ 認証',
+      '国際ウホ標準規格 準拠',
+    ];
+
+    function makeRating(legendary) {
+      let pct, wild;
+      if (legendary) {
+        return { pct: '∞', cert: 'ゴリラ神 直々の啓示 👑', wild: true };
+      }
+      const roll = Math.random();
+      if (roll < 0.08) {
+        // Comically low / broken reading
+        pct = Math.random() < 0.5 ? '404' : '0.' + (1 + rand(8));
+        wild = true;
+      } else if (roll < 0.16) {
+        // Absurdly over 100%
+        pct = String(101 + rand(69));
+        wild = true;
+      } else {
+        // Suspiciously precise high confidence
+        pct = (85 + Math.random() * 14.9).toFixed(1);
+        wild = false;
+      }
+      return { pct: pct, cert: pick(CERTS), wild: wild };
     }
 
     // ===== SOUND =====
@@ -842,11 +1152,11 @@
       osc.stop(startTime + 0.35);
     }
 
-    function playGorillaSound() {
+    function playGorillaSound(bursts) {
       if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       if (audioCtx.state === 'suspended') audioCtx.resume();
       const now = audioCtx.currentTime;
-      const burstCount = 1 + Math.floor(Math.random() * 3);
+      const burstCount = bursts || (1 + rand(3));
       for (let i = 0; i < burstCount; i++) {
         playUho(now + i * 0.4, 80 + Math.random() * 40);
       }
@@ -939,6 +1249,7 @@
     let bananaProgress = 0;
 
     function updateProgressBar() {
+      const wasMax = bananaProgress >= 100;
       bananaProgress = Math.min(100, bananaProgress + 12);
       const fill = document.getElementById('progressFill');
       fill.style.width = bananaProgress + '%';
@@ -949,9 +1260,67 @@
         maxLabel.style.animation = 'none';
         maxLabel.offsetHeight;
         maxLabel.style.animation = '';
+        if (!wasMax) bananaRain(24); // celebrate hitting MAX once
       } else {
         maxLabel.style.display = 'none';
       }
+    }
+
+    // ===== COMBO METER =====
+
+    let comboCount = 0;
+    let lastTranslateTime = 0;
+    const COMBO_WINDOW = 2200; // ms between translations to keep a streak alive
+
+    function registerCombo() {
+      const now = Date.now();
+      comboCount = (now - lastTranslateTime < COMBO_WINDOW) ? comboCount + 1 : 1;
+      lastTranslateTime = now;
+
+      if (comboCount < 3) return;
+
+      let label, color;
+      if (comboCount >= 8)      { label = 'ULTRA GORILLA'; color = '#D50000'; }
+      else if (comboCount >= 5) { label = 'SUPER';         color = '#FF3D00'; }
+      else                      { label = '';              color = '#FF6F00'; }
+
+      const badge = document.getElementById('comboBadge');
+      badge.textContent = '🔥 ' + (label ? label + ' ' : '') + comboCount + ' COMBO!!';
+      badge.style.background = color;
+      badge.classList.remove('pop');
+      badge.offsetHeight;
+      badge.classList.add('pop');
+
+      if (comboCount >= 5) {
+        quakeScreen();
+        bananaRain(6 + comboCount * 2);
+        playGorillaSound(Math.min(4, Math.floor(comboCount / 3)));
+      }
+    }
+
+    // ===== BANANA RAIN =====
+
+    function bananaRain(count) {
+      const container = document.getElementById('bananaRain');
+      for (let i = 0; i < count; i++) {
+        const drop = document.createElement('span');
+        drop.className = 'banana-drop';
+        drop.textContent = Math.random() < 0.15 ? '🦍' : '🍌';
+        drop.style.left = (Math.random() * 100) + 'vw';
+        drop.style.animationDuration = (1.6 + Math.random() * 1.8) + 's';
+        drop.style.animationDelay = (Math.random() * 0.4) + 's';
+        drop.style.fontSize = (18 + Math.random() * 22) + 'px';
+        container.appendChild(drop);
+        setTimeout(function() { drop.remove(); }, 4200);
+      }
+    }
+
+    // ===== DISCO MODE (Konami easter egg) =====
+
+    function toggleDisco() {
+      const on = document.body.classList.toggle('disco');
+      showToast(on ? '🕺 ディスコゴリラ解禁！🪩' : 'ディスコ終了 😌');
+      if (on) { bananaRain(30); playGorillaSound(4); }
     }
 
     // ===== ANIMATIONS =====
@@ -965,9 +1334,8 @@
     }
 
     function animateEmoji() {
-      const sets = ['🦍🍌😂', '🦍💪🍌', '🍌😤🦍', '🦍🌴✨', '🔥🦍🍌', '🦍😎🍌'];
       const el = document.getElementById('emojiReactions');
-      el.textContent = sets[Math.floor(Math.random() * sets.length)];
+      el.textContent = pick(MOODS[session.mood].emojis);
       el.classList.remove('shake');
       el.offsetHeight;
       el.classList.add('shake');
@@ -976,40 +1344,86 @@
       }, 400);
     }
 
+    function quakeScreen() {
+      const c = document.getElementById('container');
+      c.classList.remove('quake');
+      c.offsetHeight;
+      c.classList.add('quake');
+      setTimeout(function() { c.classList.remove('quake'); }, 460);
+    }
+
+    function updateMoodUI() {
+      const m = MOODS[session.mood];
+      document.getElementById('moodFace').textContent = m.face;
+      document.getElementById('moodLabel').textContent = m.label;
+      const chip = document.getElementById('moodChip');
+      chip.style.borderColor = m.color;
+      chip.style.color = m.color;
+      chip.classList.remove('bump');
+      chip.offsetHeight;
+      chip.classList.add('bump');
+      setTimeout(function() { chip.classList.remove('bump'); }, 220);
+    }
+
     // ===== EVENT LISTENERS & INITIALIZATION =====
 
-    function handleTranslation(result) {
-      if (!result) return;
+    function handleTranslation(payload, input) {
+      if (!payload) return;
+      const result = payload.text;
+      lastInput = input;
+      lastOutput = result;
+
       const outputArea = document.getElementById('outputArea');
-      const outputText = document.getElementById('outputText');
-      outputText.textContent = '「' + result + '」';
+      const bubble = document.getElementById('speechBubble');
+      document.getElementById('outputText').textContent = '「' + result + '」';
+
+      // Legendary golden styling
+      bubble.classList.toggle('legendary', !!payload.legendary);
+      document.getElementById('outputGorilla').textContent = payload.legendary ? '👑' : '🦍';
+
+      // Gorilla-o-meter rating
+      const rating = makeRating(payload.legendary);
+      const score = document.getElementById('meterScore');
+      score.textContent = '翻訳精度 ' + rating.pct + '%';
+      score.classList.toggle('wild', !!rating.wild);
+      document.getElementById('meterCert').textContent = '🦍🎓 ' + rating.cert;
+
       outputArea.style.display = '';
       // Re-trigger speech bubble animation
-      const bubble = outputArea.querySelector('.speech-bubble');
       bubble.style.animation = 'none';
       bubble.offsetHeight;
       bubble.style.animation = '';
+
       animateGorilla();
       animateEmoji();
+      updateMoodUI();
       updateProgressBar();
+      registerCombo();
+
+      if (payload.legendary) { playGorillaSound(4); bananaRain(12); }
+
+      // Banana祭り easter egg
+      if (/バナナ.?バナナ/.test(input)) {
+        bananaRain(30);
+        showToast('🍌🍌🍌 バナナ祭り！🍌🍌🍌');
+      }
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-      // Restore gorilla name
+      // Restore gorilla name & initial mood
       updateNameDisplay(getGorillaName());
+      updateMoodUI();
 
       // Translate button
       document.getElementById('translateBtn').addEventListener('click', function() {
         const input = document.getElementById('mainInput').value;
-        const result = translateGorillaToJapanese(input);
-        if (result) { lastInput = input; lastOutput = result; handleTranslation(result); }
+        handleTranslation(translateGorillaToJapanese(input), input);
       });
 
       // Reverse button
       document.getElementById('reverseBtn').addEventListener('click', function() {
         const input = document.getElementById('mainInput').value;
-        const result = translateJapaneseToGorilla(input);
-        if (result) { lastInput = input; lastOutput = result; handleTranslation(result); }
+        handleTranslation(translateJapaneseToGorilla(input), input);
       });
 
       // Sound button
@@ -1028,6 +1442,19 @@
       nameInput.addEventListener('keydown', function(e) {
         if (e.key === 'Enter') finishNameEdit();
         if (e.key === 'Escape') { nameInput.value = getGorillaName(); finishNameEdit(); }
+      });
+
+      // Konami code → disco gorilla
+      const KONAMI = ['arrowup', 'arrowup', 'arrowdown', 'arrowdown', 'arrowleft', 'arrowright', 'arrowleft', 'arrowright', 'b', 'a'];
+      let kIdx = 0;
+      document.addEventListener('keydown', function(e) {
+        const key = e.key.length === 1 ? e.key.toLowerCase() : e.key.toLowerCase();
+        if (key === KONAMI[kIdx]) {
+          kIdx++;
+          if (kIdx === KONAMI.length) { toggleDisco(); kIdx = 0; }
+        } else {
+          kIdx = (key === KONAMI[0]) ? 1 : 0;
+        }
       });
     });
   </script>
