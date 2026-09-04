@@ -68,6 +68,7 @@
 
   .field { margin-bottom: 12px; }
   .field label { display: block; font-size: 13px; color: var(--text-dim); margin-bottom: 5px; }
+  .field input[type="range"] { width: 100%; accent-color: var(--ice); }
   .field input[type="time"],
   .field input[type="number"],
   .field input[type="text"] {
@@ -121,7 +122,7 @@
        percentage of the 1080x2340 screenshots into that width-relative unit. */
     container-type: inline-size;
     --source-k: 2.1667;
-    --ui-scale: 1.12;
+    --ui-scale: 1.12;   /* overridden per player; STANDARD_UI_SCALE is the ranked value */
     background: #16263a;
     overflow: hidden;
     touch-action: manipulation;
@@ -498,6 +499,15 @@
     <h2>画面表示ディレイ</h2>
     <div class="card" id="delayFields"></div>
 
+    <h2>UIサイズ</h2>
+    <div class="card">
+      <div class="field">
+        <label>ボタンの大きさ <span id="uiScaleValue"></span></label>
+        <input type="range" id="uiScaleInput" min="0.8" max="1.4" step="0.02">
+        <div class="hint">標準は1.12。大きくすると押しやすくなるぶん、標準コース扱いではなくなる。1.15を超えると狭い画面ではボタンが重なることがある。</div>
+      </div>
+    </div>
+
     <h2>補正</h2>
     <div class="card">
       <div class="field">
@@ -563,6 +573,9 @@ var DEFAULT_LEAD_SECONDS = 10;
 var BANANA_HIT_MS = 950;
 var SCREEN_SETTLE_MS = 350;
 var COURSE_VERSION = 2;
+var STANDARD_UI_SCALE = 1.12;
+var MIN_UI_SCALE = 0.8;
+var MAX_UI_SCALE = 1.4;
 var CLEAR_PHRASE = '9t9t';
 var BOARD_ENDPOINT = '/api/leaderboard';
 var LOCAL_HISTORY_LIMIT = 20;
@@ -575,6 +588,7 @@ var STORAGE_KEYS = {
 var DEFAULT_SETTINGS = {
   courseVersion: COURSE_VERSION,
   playerName: '',
+  uiScale: STANDARD_UI_SCALE,
   delaysMs: STANDARD_COURSE.map(function (step) { return step.armDelayMs; }),
   inputCompMs: 0,
   displayCompMs: 0,
@@ -610,10 +624,22 @@ function saveSettings() {
   } catch (e) { /* Safari private mode */ }
 }
 
+// Bigger targets are easier to hit, so a changed scale makes a run unranked
+// for the same reason a changed delay does.
 function isStandardCourse() {
-  return settings.delaysMs.every(function (delay, index) {
+  var delaysAreStandard = settings.delaysMs.every(function (delay, index) {
     return delay === STANDARD_COURSE[index].armDelayMs;
   });
+  return delaysAreStandard && isStandardScale();
+}
+
+// Slider values arrive as strings and can drift, so compare with a tolerance.
+function isStandardScale() {
+  return Math.abs(settings.uiScale - STANDARD_UI_SCALE) < 0.001;
+}
+
+function applyUiScale() {
+  document.getElementById('phoneFrame').style.setProperty('--ui-scale', settings.uiScale);
 }
 
 function playerName() {
@@ -1291,6 +1317,17 @@ function initSettings() {
     saveSettings();
   });
 
+  var uiScaleInput = document.getElementById('uiScaleInput');
+  uiScaleInput.addEventListener('input', function () {
+    settings.uiScale = clampUiScale(Number(uiScaleInput.value));
+    applyUiScale();
+    renderUiScaleField();
+  });
+  uiScaleInput.addEventListener('change', function () {
+    saveSettings();
+    renderCourseStatus();
+  });
+
   bindNumberSetting('inputCompInput', 'inputCompMs');
   bindNumberSetting('displayCompInput', 'displayCompMs');
 
@@ -1303,8 +1340,11 @@ function initSettings() {
 
   document.getElementById('resetCourseBtn').addEventListener('click', function () {
     settings.delaysMs = DEFAULT_SETTINGS.delaysMs.slice();
+    settings.uiScale = STANDARD_UI_SCALE;
     saveSettings();
+    applyUiScale();
     renderDelayFields();
+    renderUiScaleField();
     renderCourseStatus();
     showToast('標準コースに戻しました。');
   });
@@ -1315,6 +1355,18 @@ function initSettings() {
   });
 
   renderDelayFields();
+  renderUiScaleField();
+}
+
+function clampUiScale(value) {
+  if (!isFinite(value)) return STANDARD_UI_SCALE;
+  return Math.min(MAX_UI_SCALE, Math.max(MIN_UI_SCALE, value));
+}
+
+function renderUiScaleField() {
+  document.getElementById('uiScaleInput').value = settings.uiScale;
+  document.getElementById('uiScaleValue').textContent =
+    settings.uiScale.toFixed(2) + (isStandardScale() ? '（標準）' : '');
 }
 
 function bindNumberSetting(elementId, settingKey) {
@@ -1325,6 +1377,9 @@ function bindNumberSetting(elementId, settingKey) {
     saveSettings();
   });
 }
+
+settings.uiScale = clampUiScale(Number(settings.uiScale));
+applyUiScale();
 
 initHome();
 initRun();
