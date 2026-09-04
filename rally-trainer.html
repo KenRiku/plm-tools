@@ -504,7 +504,7 @@
       <div class="field">
         <label>ボタンの大きさ <span id="uiScaleValue"></span></label>
         <input type="range" id="uiScaleInput" min="0.8" max="1.4" step="0.02">
-        <div class="hint">標準は1.12。大きくすると押しやすくなるぶん、標準コース扱いではなくなる。1.15を超えると狭い画面ではボタンが重なることがある。</div>
+        <div class="hint">標準は1.12。0.8〜1.4の範囲なら好きな大きさでランキングに送れる。1.15を超えると狭い画面ではボタンが重なることがある。</div>
       </div>
     </div>
 
@@ -624,13 +624,17 @@ function saveSettings() {
   } catch (e) { /* Safari private mode */ }
 }
 
-// Bigger targets are easier to hit, so a changed scale makes a run unranked
-// for the same reason a changed delay does.
+// Any scale within the supported range stays rankable; only the timing of the
+// course has to match for a run to count.
 function isStandardCourse() {
   var delaysAreStandard = settings.delaysMs.every(function (delay, index) {
     return delay === STANDARD_COURSE[index].armDelayMs;
   });
-  return delaysAreStandard && isStandardScale();
+  return delaysAreStandard && isSupportedScale(settings.uiScale);
+}
+
+function isSupportedScale(scale) {
+  return isFinite(scale) && scale >= MIN_UI_SCALE - 0.001 && scale <= MAX_UI_SCALE + 0.001;
 }
 
 // Slider values arrive as strings and can drift, so compare with a tolerance.
