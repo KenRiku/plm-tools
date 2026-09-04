@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Gorilla Translator (ゴッリッラ翻訳) — a single-page comedy web app that "translates" between gorilla language (ウホウホ) and funny Japanese phrases. No AI, no backend, no dependencies. The core app is one `index.html` file with inline CSS and JS; a small set of PWA support files (manifest, service worker, icons) sit alongside it so it can be installed on a phone home screen. Deployed on Vercel.
 
-`gorilla-runner.html` is a separate Chrome-Dino-style gorilla runner (canvas, no dependencies) that is **not linked from `index.html`**'s markup — keeping it in its own file means it adds zero weight to the main translator's bundle. It's reachable by typing one of a few gorilla-flavored secret words into the main input, which reveals a glowing button that navigates to it (see item 15 below).
+`rally-trainer.html` is a Whiteout Survival rally-tap trainer — a separate tool that has nothing to do with translation, kept in its own file and gated behind its own secret phrase (see "Rally trainer" below). `gorilla-runner.html` is a separate Chrome-Dino-style gorilla runner (canvas, no dependencies) that is **not linked from `index.html`**'s markup — keeping it in its own file means it adds zero weight to the main translator's bundle. It's reachable by typing one of a few gorilla-flavored secret words into the main input, which reveals a glowing button that navigates to it (see item 15 below).
 
 ## Development
 
@@ -46,6 +46,18 @@ Single `index.html` organized in sections:
 - **Absurd, not broken**: inaccuracy is the joke, but output must be well-formed Japanese. Phrases are tagged by grammatical `kind` and `compose()` only attaches fragments where they stay grammatical. When adding phrases, tag them correctly (`p`/`c`/`q`/`x`/`s`) or compositing will mangle them.
 - `session.translationCount` tracks total translations (both directions); `session.gorillaTranslateCount` tracks gorilla→JP only (used for first-greeting logic); `session.mood` / `session.moodPoints` drive the mood chip and emoji reactions
 - New heavier features (like the gorilla runner game) go in their own standalone file first, unlinked from `index.html`'s markup, so the main app's payload stays light — gate access via a secret trigger rather than a visible link
+
+## Rally trainer (`rally-trainer.html`)
+
+Practice tool for the weekly Fortress/Station fight: at a user-set wall-clock time the 集結 button goes live and you race through the four-tap rally sequence. Standalone file, unlocked from `index.html` by typing `私はPLMのゴリラ` anywhere in the main input (`RALLY_SECRET`, substring match — unlike `RUNNER_SECRETS`, which match the whole value).
+
+- **Course** — `STANDARD_COURSE`: 集結 → 5分 → 集結を発起 → 出征. Each step names the mock screen it lives on and `armDelayMs`, the game's animation delay before it becomes tappable. Step 0 (opening the station popup) is done in advance, so a run opens with the popup already showing and only the clock to wait on.
+- **Mock screens** — simplified but positionally faithful redraws of the three real game screens, with every element placed by its centre as a % of the frame, measured off 1080x2340 screenshots. The frame is locked to that aspect ratio so targets land in the same place on any device. Decoy buttons are real: tapping one counts as a miss and costs time, same as in game.
+- **Timing** — `pointerdown` (not `click`) and its own `event.timeStamp`, which shares the `performance.now()` clock. A target's clock starts when it actually painted, read via double-`requestAnimationFrame`, so refresh-rate jitter cancels out instead of being guessed at. `total = tapped[last] - shown[0]`.
+- **Run invalidation** — a backgrounded tab stops painting and would stall the countdown, so `visibilitychange` kills the run rather than reporting a wrong time. False starts (tapping before the target time) do the same, toggleable in settings.
+- **Settings** — `localStorage` (`rallyTrainerSettings`), merged over defaults on load. Per-step animation delays, input/display compensation, false-start toggle, name.
+- **Standard vs practice** — tuning any delay away from `STANDARD_COURSE` makes the run *practice*: still timed and still kept in local history, but not submittable, so the shared board compares like with like.
+- **Leaderboard** — `api/leaderboard.js`, an Upstash Redis sorted set scored on ms (`ZADD`/`ZRANGE`, top 50). Plain `fetch` against Upstash's REST API, so the project keeps its no-dependency/no-build property. Needs `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN`; without them `getRedis()` returns `null` and routes 503 while the page falls back to local-only history. Submissions under 1000 ms are rejected as inhuman. Deliberately unauthenticated — bad entries get pruned by hand, and anyone can wipe the board with the `9t9t` phrase (client-side; the server checks it only to stop drive-by crawlers). `sw.js` skips `/api/` so the board is never served from cache.
 
 ## PWA
 

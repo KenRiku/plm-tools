@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>集結タップ練習 — PLM</title>
+<style>
+  :root {
+    --bg: #0a1a2e;
+    --panel: #14293f;
+    --panel-light: #1d3a56;
+    --ice: #4fc3f7;
+    --ice-dim: #2a6f9e;
+    --text: #e8f4ff;
+    --text-dim: #8fb3cc;
+    --gold: #ffc94d;
+    --danger: #ff5a5a;
+    --good: #5ade8a;
+    --radius: 12px;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", sans-serif;
+    overscroll-behavior: none;
+  }
+
+  .app { max-width: 480px; margin: 0 auto; padding: 16px; }
+
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  h2 { font-size: 16px; margin: 20px 0 8px; color: var(--ice); }
+  .sub { color: var(--text-dim); font-size: 13px; margin: 0 0 20px; }
+
+  .card {
+    background: var(--panel);
+    border-radius: var(--radius);
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+
+  .btn {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 700;
+    font-family: inherit;
+    color: #04121f;
+    background: var(--ice);
+    border: none;
+    border-radius: var(--radius);
+    box-shadow: 0 3px 0 var(--ice-dim);
+    cursor: pointer;
+    margin-bottom: 10px;
+    touch-action: manipulation;
+  }
+  .btn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--ice-dim); }
+  .btn.secondary { background: var(--panel-light); color: var(--text); box-shadow: 0 3px 0 #0d1f30; }
+  .btn.danger { background: var(--danger); color: #2a0000; box-shadow: 0 3px 0 #8f2020; }
+
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 13px; color: var(--text-dim); margin-bottom: 5px; }
+  .field input[type="time"],
+  .field input[type="number"],
+  .field input[type="text"] {
+    width: 100%;
+    padding: 11px;
+    font-size: 16px;
+    font-family: inherit;
+    color: var(--text);
+    background: var(--panel-light);
+    border: 1px solid #2b4d6d;
+    border-radius: 8px;
+  }
+  .field .hint { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+
+  .row { display: flex; gap: 8px; }
+  .row .btn { margin-bottom: 0; }
+
+  .toggle { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; }
+  .toggle span { font-size: 14px; }
+  .toggle input { width: 22px; height: 22px; accent-color: var(--ice); }
+
+  .clock { font-variant-numeric: tabular-nums; font-size: 28px; font-weight: 700; text-align: center; letter-spacing: 1px; }
+  .clock-label { text-align: center; font-size: 12px; color: var(--text-dim); margin-bottom: 2px; }
+
+  .badge { display: inline-block; padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+  .badge.standard { background: var(--good); color: #06331a; }
+  .badge.practice { background: var(--gold); color: #3a2a00; }
+
+  /* ===== Run screen: a fixed-aspect mock of the phone, so tap targets sit
+     where they sit in the real game regardless of the device. ===== */
+
+  #runScreen { padding: 0; max-width: none; }
+
+  .phone-frame {
+    position: relative;
+    margin: 0 auto;
+    width: min(100vw, calc(100dvh * 1080 / 2340));
+    height: min(100dvh, calc(100vw * 2340 / 1080));
+    background: #16263a;
+    overflow: hidden;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .game-screen { position: absolute; inset: 0; display: none; }
+  .game-screen.active { display: block; }
+
+  /* Every mock element is positioned by its centre as a % of the frame,
+     taken straight off the in-game screenshots. */
+  .el {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(9px, 2.6vmin, 15px);
+    font-weight: 700;
+    border-radius: 8px;
+    text-align: center;
+  }
+
+  .el.blue { background: linear-gradient(#5ab4f0, #2a7fc4); color: #fff; box-shadow: 0 2px 0 #17537f; }
+  .el.orange { background: linear-gradient(#ff8a3d, #e8571a); color: #fff; box-shadow: 0 2px 0 #a83a10; }
+  .el.plate { background: rgba(255,255,255,0.10); color: var(--text-dim); font-weight: 400; }
+  .el.text { color: #fff; }
+
+  .el.target { outline: none; }
+  .el.armed { animation: targetPulse 0.9s ease-in-out infinite; }
+  @keyframes targetPulse {
+    0%, 100% { filter: brightness(1); }
+    50%      { filter: brightness(1.35); }
+  }
+
+  .panel-station {
+    position: absolute;
+    background: linear-gradient(#eaf6ff, #cfe6f7);
+    border-radius: 14px;
+    border: 2px solid #fff;
+  }
+
+  .modal-rally {
+    position: absolute;
+    background: linear-gradient(#dceeff, #bcdcf5);
+    border-radius: 14px;
+    border: 2px solid #fff;
+    overflow: hidden;
+  }
+  .modal-header {
+    position: absolute;
+    background: linear-gradient(#6aa9d8, #4a86b8);
+    color: #fff;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(10px, 2.8vmin, 16px);
+  }
+
+  .checkbox {
+    background: #9db8c9;
+    border-radius: 6px;
+    border: 2px solid #7c99ab;
+    color: transparent;
+  }
+  .checkbox.checked { background: #7bd88f; border-color: #4ea862; color: #1c5c2b; }
+
+  .march-bg { position: absolute; inset: 0; background: linear-gradient(#0d2b4a, #16406b); }
+
+  .hud {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    padding: 10px;
+    background: rgba(4, 14, 26, 0.82);
+    text-align: center;
+    z-index: 10;
+  }
+  .hud .clock { font-size: 24px; }
+  .hud .step { font-size: 12px; color: var(--text-dim); }
+
+  .flash {
+    position: absolute; inset: 0;
+    background: var(--danger);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 20;
+  }
+  .flash.show { animation: flashOut 0.28s ease-out; }
+  @keyframes flashOut { from { opacity: 0.5; } to { opacity: 0; } }
+
+  .abort {
+    position: absolute; top: 6px; right: 8px; z-index: 30;
+    background: rgba(0,0,0,0.45); color: #fff; border: none;
+    border-radius: 8px; padding: 6px 10px; font-size: 12px; font-family: inherit;
+  }
+
+  /* ===== Result & leaderboard ===== */
+
+  .big-time { font-size: 46px; font-weight: 800; text-align: center; font-variant-numeric: tabular-nums; }
+  .big-time .unit { font-size: 18px; color: var(--text-dim); }
+  .verdict { text-align: center; font-size: 14px; margin-bottom: 14px; }
+
+  .splits { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .splits td { padding: 7px 0; border-bottom: 1px solid #23415c; font-variant-numeric: tabular-nums; }
+  .splits td:last-child { text-align: right; font-weight: 700; }
+  .splits tr:last-child td { border-bottom: none; }
+
+  .board { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .board th { text-align: left; font-size: 11px; color: var(--text-dim); font-weight: 400; padding-bottom: 6px; }
+  .board td { padding: 8px 0; border-bottom: 1px solid #23415c; font-variant-numeric: tabular-nums; }
+  .board td:last-child { text-align: right; font-weight: 700; }
+  .board .rank { width: 34px; color: var(--text-dim); }
+  .board tr.me td { color: var(--gold); }
+
+  .empty { color: var(--text-dim); font-size: 13px; text-align: center; padding: 18px 0; }
+
+  .modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 100;
+  }
+  .modal-backdrop.active { display: flex; }
+  .modal-box { background: var(--panel); border-radius: var(--radius); padding: 18px; width: 100%; max-width: 320px; }
+  .modal-box h3 { margin: 0 0 6px; font-size: 16px; }
+  .modal-box p { margin: 0 0 12px; font-size: 13px; color: var(--text-dim); }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: rgba(4, 14, 26, 0.95);
+    border: 1px solid var(--ice-dim);
+    color: var(--text);
+    padding: 11px 16px; border-radius: 999px; font-size: 13px;
+    opacity: 0; pointer-events: none; transition: opacity 0.25s;
+    z-index: 200; max-width: 90vw; text-align: center;
+  }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ===== HOME ===== -->
+  <div class="screen active" id="homeScreen">
+    <h1>集結タップ練習</h1>
+    <p class="sub">砦・拠点の解放と同時に集結を切る、そのタップ列だけを練習する。</p>
+
+    <div class="card">
+      <div class="field">
+        <label>開始時刻</label>
+        <input type="time" id="targetTimeInput" step="1">
+        <div class="hint">端末の時計基準。この時刻に「集結」が押せるようになる。</div>
+      </div>
+      <div class="row">
+        <button class="btn secondary" data-offset="10">+10秒</button>
+        <button class="btn secondary" data-offset="30">+30秒</button>
+        <button class="btn secondary" data-offset="60">+60秒</button>
+      </div>
+    </div>
+
+    <button class="btn" id="startBtn">開始</button>
+    <button class="btn secondary" id="toBoardBtn">🏆 ランキング</button>
+    <button class="btn secondary" id="toSettingsBtn">⚙️ 設定</button>
+
+    <div class="card" id="courseStatus"></div>
+    <button class="btn secondary" id="backToTranslatorBtn">← ゴッリッラ翻訳へ戻る</button>
+  </div>
+
+  <!-- ===== RUN ===== -->
+  <div class="screen" id="runScreen">
+    <div class="phone-frame" id="phoneFrame">
+
+      <!-- Step 0 is done in advance, so the run opens with the station popup
+           already showing and only the clock left to wait on. -->
+      <div class="game-screen active" id="stationScreen">
+        <div class="panel-station" style="left:20.9%; top:39.3%; width:58.5%; height:32.3%;"></div>
+        <div class="el plate" style="left:50.2%; top:44.5%; width:54.8%; height:8.5%; border-radius:10px;">10号砦</div>
+        <div class="el text" style="left:50.2%; top:50.4%; width:54.8%; height:3%; color:#1b3a55;">10号砦</div>
+        <div class="el plate" style="left:50.2%; top:53.9%; width:54.8%; height:3.4%; color:#5b7d95;">所属同盟　　なし</div>
+        <div class="el blue" style="left:36.2%; top:58.8%; width:25.4%; height:3%;">栄光の壁</div>
+        <div class="el blue" style="left:64.4%; top:58.8%; width:25.4%; height:3%;">報酬とルール</div>
+        <div class="el orange target" data-step="0" style="left:36.2%; top:63.6%; width:25.4%; height:3%;">集結</div>
+        <div class="el orange" style="left:64.4%; top:63.6%; width:25.4%; height:3%;">攻撃</div>
+        <div class="el blue" style="left:36.2%; top:68.5%; width:25.4%; height:3%;">戦闘記録</div>
+      </div>
+
+      <div class="game-screen" id="rallyModalScreen">
+        <div class="modal-rally" style="left:3.3%; top:35.8%; width:93.5%; height:31%;"></div>
+        <div class="modal-header" style="left:3.3%; top:36.8%; width:93.5%; height:2.9%;">集結を発起</div>
+        <div class="el plate" style="left:50%; top:49.8%; width:87.2%; height:16.8%; border-radius:10px; background:rgba(255,255,255,0.35);"></div>
+        <div class="el text" style="left:50%; top:45.2%; width:60%; height:3%; color:#25455f;">集結時間を設定しましょう</div>
+        <div class="el checkbox checked" style="left:18.1%; top:50%; width:6.7%; height:3.1%;">✓</div>
+        <div class="el text" style="left:25.1%; top:50%; width:8%; height:3%; color:#25455f;">1分</div>
+        <div class="el checkbox target" data-step="1" style="left:54.7%; top:50%; width:6.7%; height:3.1%;">✓</div>
+        <div class="el text" style="left:62.1%; top:50%; width:8%; height:3%; color:#25455f;">5分</div>
+        <div class="el blue target" data-step="2" style="left:50%; top:62.5%; width:38.1%; height:4.5%;">集結を発起</div>
+      </div>
+
+      <div class="game-screen" id="marchScreen">
+        <div class="march-bg"></div>
+        <div class="el text" style="left:33%; top:6.7%; width:60%; height:4%; justify-content:flex-start;">← ターゲット：10号砦</div>
+        <div class="el plate" style="left:50%; top:16%; width:94%; height:7%;">兵士 194,520 / 194,520</div>
+        <div class="el plate" style="left:23.8%; top:33%; width:22%; height:17%;">Lv.80</div>
+        <div class="el plate" style="left:50%; top:33%; width:22%; height:17%;">Lv.80</div>
+        <div class="el plate" style="left:76.2%; top:33%; width:22%; height:17%;">Lv.80</div>
+        <div class="el plate" style="left:50%; top:48.4%; width:96%; height:6.5%;">煌耀弓兵</div>
+        <div class="el plate" style="left:50%; top:57.4%; width:96%; height:6.5%;">烈日盾兵</div>
+        <div class="el plate" style="left:50%; top:66.3%; width:96%; height:6.5%;">烈日槍兵</div>
+        <div class="el plate" style="left:50%; top:75.2%; width:96%; height:6.5%;">烈日弓兵</div>
+        <div class="el plate" style="left:9.3%; top:93.5%; width:15%; height:5%;">全て撤回</div>
+        <div class="el plate" style="left:27.5%; top:93.5%; width:15%; height:5%;">平均配置</div>
+        <div class="el plate" style="left:45.6%; top:93.5%; width:15%; height:5%;">比率配分</div>
+        <div class="el blue target" data-step="3" style="left:76.5%; top:95.9%; width:42%; height:4.3%;">出征</div>
+      </div>
+
+      <div class="hud" id="runHud">
+        <div class="clock-label" id="hudLabel">開始まで</div>
+        <div class="clock" id="hudClock">--:--</div>
+        <div class="step" id="hudStep"></div>
+      </div>
+
+      <div class="flash" id="flash"></div>
+      <button class="abort" id="abortBtn">中止</button>
+    </div>
+  </div>
+
+  <!-- ===== RESULT ===== -->
+  <div class="screen" id="resultScreen">
+    <h1 id="resultTitle">結果</h1>
+    <div class="card">
+      <div class="big-time"><span id="resultMs">0</span><span class="unit"> ms</span></div>
+      <div class="verdict" id="resultVerdict"></div>
+      <table class="splits" id="resultSplits"></table>
+    </div>
+    <div id="submitArea"></div>
+    <button class="btn" id="againBtn">もう一度</button>
+    <button class="btn secondary" id="resultBoardBtn">🏆 ランキング</button>
+    <button class="btn secondary" id="resultHomeBtn">ホームへ</button>
+  </div>
+
+  <!-- ===== LEADERBOARD ===== -->
+  <div class="screen" id="boardScreen">
+    <h1>🏆 ランキング</h1>
+    <p class="sub">標準コースで走った記録だけが並ぶ。速い順。</p>
+    <div class="card">
+      <table class="board" id="boardTable"></table>
+      <div class="empty" id="boardEmpty">読み込み中…</div>
+    </div>
+    <h2>自分の記録</h2>
+    <div class="card">
+      <table class="board" id="localTable"></table>
+      <div class="empty" id="localEmpty">まだ記録がない。</div>
+    </div>
+    <button class="btn secondary" id="boardHomeBtn">ホームへ</button>
+    <button class="btn danger" id="clearBoardBtn">ランキングを消去</button>
+  </div>
+
+  <!-- ===== SETTINGS ===== -->
+  <div class="screen" id="settingsScreen">
+    <h1>⚙️ 設定</h1>
+    <p class="sub">アニメ待ち時間を標準から変えると、その回は練習扱いになりランキングには送れない。</p>
+
+    <div class="card">
+      <div class="field">
+        <label>名前</label>
+        <input type="text" id="nameInput" maxlength="24" placeholder="名無しのゴリラ">
+      </div>
+    </div>
+
+    <h2>アニメ待ち時間</h2>
+    <div class="card" id="delayFields"></div>
+
+    <h2>補正</h2>
+    <div class="card">
+      <div class="field">
+        <label>入力遅延補正 (ms)</label>
+        <input type="number" id="inputCompInput" step="1">
+        <div class="hint">ブラウザのタップ検出はゲーム本体より少し遅い。実機の感覚に合わせて足し引きする。</div>
+      </div>
+      <div class="field">
+        <label>表示遅延補正 (ms)</label>
+        <input type="number" id="displayCompInput" step="1">
+        <div class="hint">描画された瞬間を実測して差し引いているので、通常は0でいい。</div>
+      </div>
+      <div class="toggle">
+        <span>フライング判定</span>
+        <input type="checkbox" id="falseStartInput">
+      </div>
+    </div>
+
+    <button class="btn secondary" id="resetCourseBtn">標準コースに戻す</button>
+    <button class="btn" id="settingsDoneBtn">完了</button>
+  </div>
+
+</div>
+
+<div class="modal-backdrop" id="phraseModal">
+  <div class="modal-box">
+    <h3>ランキングを消去</h3>
+    <p>全員の記録が消える。合言葉を入力。</p>
+    <div class="field"><input type="text" id="phraseInput" autocomplete="off"></div>
+    <button class="btn danger" id="phraseConfirmBtn">消去する</button>
+    <button class="btn secondary" id="phraseCancelBtn">やめる</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+
+// ===== Course =====
+// Positions are the centre of each button as a fraction of the screen, read
+// off in-game screenshots (1080x2340). armDelayMs is how long the game's
+// animation keeps the button untappable after the previous tap lands.
+
+var STANDARD_COURSE = [
+  { id: 'rally',   label: '集結',       screen: 'station',    armDelayMs: 0 },
+  { id: 'fiveMin', label: '5分',        screen: 'rallyModal', armDelayMs: 350 },
+  { id: 'launch',  label: '集結を発起',  screen: 'rallyModal', armDelayMs: 120 },
+  { id: 'march',   label: '出征',       screen: 'march',      armDelayMs: 600 }
+];
+
+var SCREEN_ELEMENT_IDS = {
+  station: 'stationScreen',
+  rallyModal: 'rallyModalScreen',
+  march: 'marchScreen'
+};
+
+var MIN_SUBMITTABLE_MS = 1000;
+var CLEAR_PHRASE = '9t9t';
+var BOARD_ENDPOINT = '/api/leaderboard';
+var LOCAL_HISTORY_LIMIT = 20;
+
+var STORAGE_KEYS = {
+  settings: 'rallyTrainerSettings',
+  history: 'rallyTrainerHistory'
+};
+
+var DEFAULT_SETTINGS = {
+  playerName: '',
+  targetTime: '',
+  delaysMs: STANDARD_COURSE.map(function (step) { return step.armDelayMs; }),
+  inputCompMs: 0,
+  displayCompMs: 0,
+  falseStartEnabled: true
+};
+
+// ===== Settings =====
+
+function loadSettings() {
+  var stored = {};
+  try {
+    stored = JSON.parse(localStorage.getItem(STORAGE_KEYS.settings) || '{}');
+  } catch (e) { /* corrupt or unavailable — fall back to defaults */ }
+
+  var merged = {};
+  Object.keys(DEFAULT_SETTINGS).forEach(function (key) {
+    merged[key] = stored[key] !== undefined ? stored[key] : DEFAULT_SETTINGS[key];
+  });
+  if (!Array.isArray(merged.delaysMs) || merged.delaysMs.length !== STANDARD_COURSE.length) {
+    merged.delaysMs = DEFAULT_SETTINGS.delaysMs.slice();
+  }
+  return merged;
+}
+
+function saveSettings() {
+  try {
+    localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify(settings));
+  } catch (e) { /* Safari private mode */ }
+}
+
+function isStandardCourse() {
+  return settings.delaysMs.every(function (delay, index) {
+    return delay === STANDARD_COURSE[index].armDelayMs;
+  });
+}
+
+function playerName() {
+  return (settings.playerName || '').trim() || '名無しのゴリラ';
+}
+
+// ===== Local history =====
+
+function loadHistory() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEYS.history) || '[]');
+  } catch (e) { return []; }
+}
+
+function recordHistory(entry) {
+  var history = loadHistory();
+  history.unshift(entry);
+  history = history.slice(0, LOCAL_HISTORY_LIMIT);
+  try {
+    localStorage.setItem(STORAGE_KEYS.history, JSON.stringify(history));
+  } catch (e) { /* Safari private mode */ }
+}
+
+function personalBestMs() {
+  var standardRuns = loadHistory().filter(function (entry) { return entry.standard; });
+  if (!standardRuns.length) return null;
+  return Math.min.apply(null, standardRuns.map(function (entry) { return entry.ms; }));
+}
+
+// ===== Screens =====
+
+function showScreen(id) {
+  var screens = document.querySelectorAll('.screen');
+  for (var i = 0; i < screens.length; i++) screens[i].classList.remove('active');
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function showToast(message, durationMs) {
+  var toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.classList.add('show');
+  clearTimeout(showToast.timer);
+  showToast.timer = setTimeout(function () { toast.classList.remove('show'); }, durationMs || 2600);
+}
+
+// ===== Run engine =====
+
+var settings = loadSettings();
+var run = null;
+var wakeLock = null;
+
+function targetEpochMs() {
+  var value = document.getElementById('targetTimeInput').value;
+  if (!value) return null;
+
+  var parts = value.split(':');
+  var target = new Date();
+  target.setHours(Number(parts[0]), Number(parts[1]), Number(parts[2] || 0), 0);
+  if (target.getTime() <= Date.now()) target.setDate(target.getDate() + 1);
+  return target.getTime();
+}
+
+function startRun() {
+  var epoch = targetEpochMs();
+  if (epoch === null) {
+    showToast('開始時刻を決めて。');
+    return;
+  }
+
+  run = {
+    startPerfTime: performance.now() + (epoch - Date.now()),
+    stepIndex: 0,
+    shownAt: [],
+    tappedAt: [],
+    misses: 0,
+    live: false,
+    finished: false
+  };
+
+  settings.targetTime = document.getElementById('targetTimeInput').value;
+  saveSettings();
+
+  resetTargets();
+  resetCheckboxes();
+  showGameScreen(STANDARD_COURSE[0].screen);
+  showScreen('runScreen');
+  requestWakeLock();
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+  tickCountdown();
+}
+
+// A backgrounded tab stops painting, which stalls the countdown and would hand
+// back a meaningless time. Kill the run instead of reporting a wrong one.
+function handleVisibilityChange() {
+  if (!document.hidden || !run || run.finished) return;
+  endRun();
+  showInvalidRun('中断', '画面から離れたので計測を打ち切った。');
+}
+
+function endRun() {
+  run.finished = true;
+  releaseWakeLock();
+  document.removeEventListener('visibilitychange', handleVisibilityChange);
+}
+
+function resetTargets() {
+  var targets = document.querySelectorAll('.el.target');
+  for (var i = 0; i < targets.length; i++) targets[i].classList.remove('armed');
+  document.getElementById('hudLabel').textContent = '開始まで';
+  document.getElementById('hudStep').textContent = '';
+}
+
+function resetCheckboxes() {
+  var checkboxes = document.querySelectorAll('#rallyModalScreen .checkbox');
+  checkboxes[0].classList.add('checked');
+  checkboxes[1].classList.remove('checked');
+}
+
+function showGameScreen(name) {
+  var screens = document.querySelectorAll('.game-screen');
+  for (var i = 0; i < screens.length; i++) screens[i].classList.remove('active');
+  document.getElementById(SCREEN_ELEMENT_IDS[name]).classList.add('active');
+}
+
+function tickCountdown() {
+  if (!run || run.live || run.finished) return;
+
+  var remainingMs = run.startPerfTime - performance.now();
+  if (remainingMs <= 0) {
+    armStep(0);
+    return;
+  }
+
+  document.getElementById('hudClock').textContent = formatCountdown(remainingMs);
+  requestAnimationFrame(tickCountdown);
+}
+
+function formatCountdown(ms) {
+  var totalSeconds = Math.floor(ms / 1000);
+  var minutes = Math.floor(totalSeconds / 60);
+  var seconds = totalSeconds % 60;
+  var tenths = Math.floor((ms % 1000) / 100);
+  return minutes + ':' + String(seconds).padStart(2, '0') + '.' + tenths;
+}
+
+// A target's clock starts when it is actually on screen, not when we asked for
+// it — so reveal in one frame and read the following frame's timestamp, which
+// is when that paint reached the display. Refresh-rate jitter cancels out.
+function armStep(index) {
+  var step = STANDARD_COURSE[index];
+  showGameScreen(step.screen);
+
+  requestAnimationFrame(function () {
+    var target = document.querySelector('.el.target[data-step="' + index + '"]');
+    target.classList.add('armed');
+
+    requestAnimationFrame(function (shownAt) {
+      if (!run || run.finished) return;
+      run.shownAt[index] = shownAt;
+      run.stepIndex = index;
+      run.live = true;
+      updateRunHud(index);
+    });
+  });
+}
+
+function updateRunHud(index) {
+  document.getElementById('hudLabel').textContent = 'タップ';
+  document.getElementById('hudClock').textContent = STANDARD_COURSE[index].label;
+  document.getElementById('hudStep').textContent = (index + 1) + ' / ' + STANDARD_COURSE.length;
+}
+
+function handleFrameTap(event) {
+  if (!run || run.finished) return;
+
+  if (!run.live) {
+    handleEarlyTap();
+    return;
+  }
+
+  var target = event.target.closest('.el.target');
+  var isCurrentTarget = target && Number(target.dataset.step) === run.stepIndex;
+  if (!isCurrentTarget) {
+    run.misses++;
+    flashMiss();
+    return;
+  }
+
+  run.tappedAt[run.stepIndex] = event.timeStamp;
+  run.live = false;
+  target.classList.remove('armed');
+  applyTapFeedback(run.stepIndex);
+
+  var nextIndex = run.stepIndex + 1;
+  if (nextIndex >= STANDARD_COURSE.length) {
+    finishRun();
+    return;
+  }
+  setTimeout(function () { armStep(nextIndex); }, settings.delaysMs[nextIndex]);
+}
+
+// The 5-minute checkbox is the one target whose state the player can see
+// change, so mirror the game and move the tick across.
+function applyTapFeedback(index) {
+  if (STANDARD_COURSE[index].id !== 'fiveMin') return;
+  var checkboxes = document.querySelectorAll('#rallyModalScreen .checkbox');
+  checkboxes[0].classList.remove('checked');
+  checkboxes[1].classList.add('checked');
+}
+
+function handleEarlyTap() {
+  if (!settings.falseStartEnabled) return;
+  endRun();
+  showInvalidRun('フライング', '時刻より前にタップした。');
+}
+
+function flashMiss() {
+  var flash = document.getElementById('flash');
+  flash.classList.remove('show');
+  void flash.offsetWidth;
+  flash.classList.add('show');
+}
+
+function abortRun() {
+  if (run) endRun();
+  showScreen('homeScreen');
+}
+
+// ===== Scoring =====
+
+function finishRun() {
+  endRun();
+
+  var lastIndex = STANDARD_COURSE.length - 1;
+  var rawMs = run.tappedAt[lastIndex] - run.shownAt[0];
+  var totalMs = Math.round(rawMs + settings.inputCompMs + settings.displayCompMs);
+
+  var result = {
+    ms: totalMs,
+    misses: run.misses,
+    standard: isStandardCourse(),
+    at: Date.now(),
+    splits: STANDARD_COURSE.map(function (step, index) {
+      return { label: step.label, ms: Math.round(run.tappedAt[index] - run.shownAt[index]) };
+    })
+  };
+
+  recordHistory({ ms: result.ms, misses: result.misses, standard: result.standard, at: result.at });
+  renderResult(result);
+  showScreen('resultScreen');
+}
+
+function renderResult(result) {
+  document.getElementById('resultMs').textContent = result.ms.toLocaleString();
+
+  var verdictParts = [];
+  var best = personalBestMs();
+  if (result.standard && best !== null && result.ms <= best) verdictParts.push('自己ベスト更新');
+  else if (best !== null) verdictParts.push('自己ベスト ' + best.toLocaleString() + ' ms');
+  if (result.misses > 0) verdictParts.push('ミスタップ ' + result.misses + '回');
+  verdictParts.push(result.standard ? '標準コース' : '練習（設定変更あり）');
+  document.getElementById('resultVerdict').textContent = verdictParts.join(' ・ ');
+
+  var rows = result.splits.map(function (split, index) {
+    return '<tr><td>' + (index + 1) + '. ' + split.label + '</td><td>' +
+      split.ms.toLocaleString() + ' ms</td></tr>';
+  });
+  document.getElementById('resultSplits').innerHTML = rows.join('');
+
+  renderSubmitArea(result);
+}
+
+function renderSubmitArea(result) {
+  var area = document.getElementById('submitArea');
+
+  if (!result.standard) {
+    area.innerHTML = '<div class="card"><span class="badge practice">練習</span> ' +
+      '待ち時間を標準から変えているので、ランキングには送れない。</div>';
+    return;
+  }
+  if (result.ms < MIN_SUBMITTABLE_MS) {
+    area.innerHTML = '<div class="card">' + MIN_SUBMITTABLE_MS +
+      ' ms 未満は人力では出ないので、ランキングには送れない。</div>';
+    return;
+  }
+
+  area.innerHTML = '<button class="btn" id="submitBtn">🏆 ランキングに送る</button>';
+  document.getElementById('submitBtn').addEventListener('click', function () {
+    submitScore(result.ms);
+  });
+}
+
+function showInvalidRun(title, message) {
+  document.getElementById('resultTitle').textContent = title;
+  document.getElementById('resultMs').textContent = '—';
+  document.getElementById('resultVerdict').textContent = message;
+  document.getElementById('resultSplits').innerHTML = '';
+  document.getElementById('submitArea').innerHTML = '';
+  showScreen('resultScreen');
+}
+
+// ===== Leaderboard =====
+
+function submitScore(ms) {
+  var button = document.getElementById('submitBtn');
+  if (button) button.disabled = true;
+
+  fetch(BOARD_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: playerName(), ms: ms })
+  })
+    .then(function (response) {
+      if (!response.ok) throw new Error(String(response.status));
+      showToast('送信した。');
+      openBoard();
+    })
+    .catch(function () {
+      showToast('ランキングに繋がらない。記録は端末に残っている。', 3600);
+      if (button) button.disabled = false;
+    });
+}
+
+function openBoard() {
+  showScreen('boardScreen');
+  renderLocalHistory();
+  loadBoard();
+}
+
+function loadBoard() {
+  var empty = document.getElementById('boardEmpty');
+  var table = document.getElementById('boardTable');
+  table.innerHTML = '';
+  empty.textContent = '読み込み中…';
+  empty.style.display = '';
+
+  fetch(BOARD_ENDPOINT)
+    .then(function (response) {
+      if (!response.ok) throw new Error(String(response.status));
+      return response.json();
+    })
+    .then(function (data) { renderBoard(data.entries || []); })
+    .catch(function () {
+      empty.textContent = 'ランキングに繋がらない。';
+    });
+}
+
+function renderBoard(entries) {
+  var table = document.getElementById('boardTable');
+  var empty = document.getElementById('boardEmpty');
+
+  if (!entries.length) {
+    table.innerHTML = '';
+    empty.textContent = 'まだ誰も走っていない。';
+    empty.style.display = '';
+    return;
+  }
+
+  var me = playerName();
+  var header = '<tr><th class="rank">#</th><th>名前</th><th></th></tr>';
+  var rows = entries.map(function (entry, index) {
+    var mine = entry.name === me ? ' class="me"' : '';
+    return '<tr' + mine + '><td class="rank">' + (index + 1) + '</td><td>' +
+      escapeHtml(entry.name) + '</td><td>' + Number(entry.ms).toLocaleString() + ' ms</td></tr>';
+  });
+
+  table.innerHTML = header + rows.join('');
+  empty.style.display = 'none';
+}
+
+function renderLocalHistory() {
+  var history = loadHistory();
+  var table = document.getElementById('localTable');
+  var empty = document.getElementById('localEmpty');
+
+  if (!history.length) {
+    table.innerHTML = '';
+    empty.style.display = '';
+    return;
+  }
+
+  var rows = history.map(function (entry) {
+    var tag = entry.standard ? '標準' : '練習';
+    return '<tr><td class="rank">' + tag + '</td><td>' + formatDateTime(entry.at) +
+      '</td><td>' + entry.ms.toLocaleString() + ' ms</td></tr>';
+  });
+
+  table.innerHTML = rows.join('');
+  empty.style.display = 'none';
+}
+
+function formatDateTime(epochMs) {
+  var date = new Date(epochMs);
+  return (date.getMonth() + 1) + '/' + date.getDate() + ' ' +
+    String(date.getHours()).padStart(2, '0') + ':' + String(date.getMinutes()).padStart(2, '0');
+}
+
+function escapeHtml(text) {
+  return String(text).replace(/[&<>"']/g, function (character) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character];
+  });
+}
+
+function clearBoard(phrase) {
+  fetch(BOARD_ENDPOINT, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phrase: phrase })
+  })
+    .then(function (response) {
+      if (!response.ok) throw new Error(String(response.status));
+      showToast('ランキングを消した。');
+      loadBoard();
+    })
+    .catch(function () { showToast('消去できなかった。'); });
+}
+
+// ===== Wake lock =====
+
+function requestWakeLock() {
+  if (!navigator.wakeLock) return;
+  navigator.wakeLock.request('screen')
+    .then(function (lock) { wakeLock = lock; })
+    .catch(function () { /* denied or unsupported — the run still works */ });
+}
+
+function releaseWakeLock() {
+  if (!wakeLock) return;
+  wakeLock.release().catch(function () { /* already gone */ });
+  wakeLock = null;
+}
+
+// ===== Settings screen =====
+
+function renderDelayFields() {
+  var container = document.getElementById('delayFields');
+
+  container.innerHTML = STANDARD_COURSE.map(function (step, index) {
+    var isFirst = index === 0;
+    var hint = isFirst
+      ? '開始時刻ちょうどに解放されるので固定。'
+      : '標準 ' + step.armDelayMs + ' ms';
+    return '<div class="field">' +
+      '<label>' + (index + 1) + '. ' + step.label + ' が押せるまで (ms)</label>' +
+      '<input type="number" step="10" min="0" data-delay-index="' + index + '"' +
+      (isFirst ? ' disabled' : '') + ' value="' + settings.delaysMs[index] + '">' +
+      '<div class="hint">' + hint + '</div>' +
+      '</div>';
+  }).join('');
+
+  var inputs = container.querySelectorAll('input[data-delay-index]');
+  for (var i = 0; i < inputs.length; i++) {
+    inputs[i].addEventListener('change', function (event) {
+      var index = Number(event.target.dataset.delayIndex);
+      settings.delaysMs[index] = Math.max(0, Number(event.target.value) || 0);
+      saveSettings();
+      renderCourseStatus();
+    });
+  }
+}
+
+function renderCourseStatus() {
+  var standard = isStandardCourse();
+  var best = personalBestMs();
+  var badge = standard
+    ? '<span class="badge standard">標準コース</span>'
+    : '<span class="badge practice">練習コース</span>';
+  var bestLine = best === null ? '記録なし' : '自己ベスト ' + best.toLocaleString() + ' ms';
+
+  document.getElementById('courseStatus').innerHTML = badge +
+    '<div class="hint" style="margin-top:8px; color:var(--text-dim); font-size:12px;">' +
+    escapeHtml(playerName()) + ' ・ ' + bestLine + '</div>';
+}
+
+// ===== Wiring =====
+
+function initHome() {
+  var timeInput = document.getElementById('targetTimeInput');
+  timeInput.value = settings.targetTime || defaultTargetTime();
+
+  var offsetButtons = document.querySelectorAll('[data-offset]');
+  for (var i = 0; i < offsetButtons.length; i++) {
+    offsetButtons[i].addEventListener('click', function (event) {
+      var offsetSeconds = Number(event.target.dataset.offset);
+      timeInput.value = timeStringFromNow(offsetSeconds);
+    });
+  }
+
+  document.getElementById('startBtn').addEventListener('click', startRun);
+  document.getElementById('toBoardBtn').addEventListener('click', openBoard);
+  document.getElementById('toSettingsBtn').addEventListener('click', function () {
+    showScreen('settingsScreen');
+  });
+  document.getElementById('backToTranslatorBtn').addEventListener('click', function () {
+    window.location.href = 'index.html';
+  });
+}
+
+function defaultTargetTime() { return timeStringFromNow(30); }
+
+function timeStringFromNow(offsetSeconds) {
+  var target = new Date(Date.now() + offsetSeconds * 1000);
+  return String(target.getHours()).padStart(2, '0') + ':' +
+    String(target.getMinutes()).padStart(2, '0') + ':' +
+    String(target.getSeconds()).padStart(2, '0');
+}
+
+function initRun() {
+  document.getElementById('phoneFrame').addEventListener('pointerdown', handleFrameTap);
+  document.getElementById('abortBtn').addEventListener('pointerdown', function (event) {
+    event.stopPropagation();
+    abortRun();
+  });
+}
+
+function initResult() {
+  document.getElementById('againBtn').addEventListener('click', function () {
+    document.getElementById('resultTitle').textContent = '結果';
+    document.getElementById('targetTimeInput').value = defaultTargetTime();
+    startRun();
+  });
+  document.getElementById('resultBoardBtn').addEventListener('click', openBoard);
+  document.getElementById('resultHomeBtn').addEventListener('click', function () {
+    document.getElementById('resultTitle').textContent = '結果';
+    renderCourseStatus();
+    showScreen('homeScreen');
+  });
+}
+
+function initBoard() {
+  document.getElementById('boardHomeBtn').addEventListener('click', function () {
+    renderCourseStatus();
+    showScreen('homeScreen');
+  });
+  document.getElementById('clearBoardBtn').addEventListener('click', function () {
+    document.getElementById('phraseInput').value = '';
+    document.getElementById('phraseModal').classList.add('active');
+  });
+  document.getElementById('phraseCancelBtn').addEventListener('click', function () {
+    document.getElementById('phraseModal').classList.remove('active');
+  });
+  document.getElementById('phraseConfirmBtn').addEventListener('click', function () {
+    var phrase = document.getElementById('phraseInput').value.trim();
+    if (phrase !== CLEAR_PHRASE) {
+      showToast('合言葉が違う。');
+      return;
+    }
+    document.getElementById('phraseModal').classList.remove('active');
+    clearBoard(phrase);
+  });
+}
+
+function initSettings() {
+  var nameInput = document.getElementById('nameInput');
+  nameInput.value = settings.playerName;
+  nameInput.addEventListener('change', function () {
+    settings.playerName = nameInput.value.trim();
+    saveSettings();
+  });
+
+  bindNumberSetting('inputCompInput', 'inputCompMs');
+  bindNumberSetting('displayCompInput', 'displayCompMs');
+
+  var falseStartInput = document.getElementById('falseStartInput');
+  falseStartInput.checked = settings.falseStartEnabled;
+  falseStartInput.addEventListener('change', function () {
+    settings.falseStartEnabled = falseStartInput.checked;
+    saveSettings();
+  });
+
+  document.getElementById('resetCourseBtn').addEventListener('click', function () {
+    settings.delaysMs = DEFAULT_SETTINGS.delaysMs.slice();
+    saveSettings();
+    renderDelayFields();
+    renderCourseStatus();
+    showToast('標準コースに戻した。');
+  });
+
+  document.getElementById('settingsDoneBtn').addEventListener('click', function () {
+    renderCourseStatus();
+    showScreen('homeScreen');
+  });
+
+  renderDelayFields();
+}
+
+function bindNumberSetting(elementId, settingKey) {
+  var input = document.getElementById(elementId);
+  input.value = settings[settingKey];
+  input.addEventListener('change', function () {
+    settings[settingKey] = Math.round(Number(input.value) || 0);
+    saveSettings();
+  });
+}
+
+initHome();
+initRun();
+initResult();
+initBoard();
+initSettings();
+renderCourseStatus();
+</script>
+</body>
+</html>
