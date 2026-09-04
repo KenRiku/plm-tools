@@ -429,9 +429,9 @@
 
 var STANDARD_COURSE = [
   { id: 'rally',   label: '集結',       screen: 'station',    armDelayMs: 0 },
-  { id: 'fiveMin', label: '5分',        screen: 'rallyModal', armDelayMs: 350 },
-  { id: 'launch',  label: '集結を発起',  screen: 'rallyModal', armDelayMs: 120 },
-  { id: 'march',   label: '出征',       screen: 'march',      armDelayMs: 600 }
+  { id: 'fiveMin', label: '5分',        screen: 'rallyModal', armDelayMs: 250 },
+  { id: 'launch',  label: '集結を発起',  screen: 'rallyModal', armDelayMs: 250 },
+  { id: 'march',   label: '出征',       screen: 'march',      armDelayMs: 250 }
 ];
 
 var SCREEN_ELEMENT_IDS = {
@@ -441,6 +441,8 @@ var SCREEN_ELEMENT_IDS = {
 };
 
 var MIN_SUBMITTABLE_MS = 1000;
+var DEFAULT_LEAD_SECONDS = 10;
+var COURSE_VERSION = 2;
 var CLEAR_PHRASE = '9t9t';
 var BOARD_ENDPOINT = '/api/leaderboard';
 var LOCAL_HISTORY_LIMIT = 20;
@@ -451,12 +453,12 @@ var STORAGE_KEYS = {
 };
 
 var DEFAULT_SETTINGS = {
+  courseVersion: COURSE_VERSION,
   playerName: '',
-  targetTime: '',
   delaysMs: STANDARD_COURSE.map(function (step) { return step.armDelayMs; }),
   inputCompMs: 0,
   displayCompMs: 0,
-  falseStartEnabled: true
+  falseStartEnabled: false
 };
 
 // ===== Settings =====
@@ -471,8 +473,13 @@ function loadSettings() {
   Object.keys(DEFAULT_SETTINGS).forEach(function (key) {
     merged[key] = stored[key] !== undefined ? stored[key] : DEFAULT_SETTINGS[key];
   });
-  if (!Array.isArray(merged.delaysMs) || merged.delaysMs.length !== STANDARD_COURSE.length) {
+  // Delays saved against an older course would silently flag every run as
+  // practice, so adopt the new standard whenever the course changes.
+  var staleCourse = stored.courseVersion !== COURSE_VERSION;
+  var malformed = !Array.isArray(merged.delaysMs) || merged.delaysMs.length !== STANDARD_COURSE.length;
+  if (staleCourse || malformed) {
     merged.delaysMs = DEFAULT_SETTINGS.delaysMs.slice();
+    merged.courseVersion = COURSE_VERSION;
   }
   return merged;
 }
@@ -539,23 +546,47 @@ var settings = loadSettings();
 var run = null;
 var wakeLock = null;
 
+// A picked time that has already passed means the value went stale while the
+// page sat idle, so fall back to a fresh lead instead of waiting until tomorrow.
 function targetEpochMs() {
+  var input = document.getElementById('targetTimeInput');
+  if (!input.value) return freshTargetEpochMs();
+
+  var parts = input.value.split(':');
+  var target = new Date();
+  target.setHours(Number(parts[0]), Number(parts[1]), Number(parts[2] || 0), 0);
+  if (target.getTime() <= Date.now()) return freshTargetEpochMs();
+  return target.getTime();
+}
+
+function freshTargetEpochMs() {
+  var epoch = Date.now() + DEFAULT_LEAD_SECONDS * 1000;
+  document.getElementById('targetTimeInput').value = timeStringFromNow(DEFAULT_LEAD_SECONDS);
+  return epoch;
+}
+
+function isTargetTimeStale() {
   var value = document.getElementById('targetTimeInput').value;
-  if (!value) return null;
+  if (!value) return true;
 
   var parts = value.split(':');
   var target = new Date();
   target.setHours(Number(parts[0]), Number(parts[1]), Number(parts[2] || 0), 0);
-  if (target.getTime() <= Date.now()) target.setDate(target.getDate() + 1);
-  return target.getTime();
+  return target.getTime() <= Date.now();
+}
+
+// Returning to the home screen with a time that has already passed would arm
+// instantly on the next run, so refresh it — but leave a deliberate future
+// time alone.
+function refreshHome() {
+  if (isTargetTimeStale()) {
+    document.getElementById('targetTimeInput').value = defaultTargetTime();
+  }
+  renderCourseStatus();
 }
 
 function startRun() {
   var epoch = targetEpochMs();
-  if (epoch === null) {
-    showToast('開始時刻を決めて。');
-    return;
-  }
 
   run = {
     startPerfTime: performance.now() + (epoch - Date.now()),
@@ -566,9 +597,6 @@ function startRun() {
     live: false,
     finished: false
   };
-
-  settings.targetTime = document.getElementById('targetTimeInput').value;
-  saveSettings();
 
   resetTargets();
   resetCheckboxes();
@@ -966,7 +994,7 @@ function renderCourseStatus() {
 
 function initHome() {
   var timeInput = document.getElementById('targetTimeInput');
-  timeInput.value = settings.targetTime || defaultTargetTime();
+  timeInput.value = defaultTargetTime();
 
   var offsetButtons = document.querySelectorAll('[data-offset]');
   for (var i = 0; i < offsetButtons.length; i++) {
@@ -986,7 +1014,7 @@ function initHome() {
   });
 }
 
-function defaultTargetTime() { return timeStringFromNow(30); }
+function defaultTargetTime() { return timeStringFromNow(DEFAULT_LEAD_SECONDS); }
 
 function timeStringFromNow(offsetSeconds) {
   var target = new Date(Date.now() + offsetSeconds * 1000);
@@ -1012,14 +1040,14 @@ function initResult() {
   document.getElementById('resultBoardBtn').addEventListener('click', openBoard);
   document.getElementById('resultHomeBtn').addEventListener('click', function () {
     document.getElementById('resultTitle').textContent = '結果';
-    renderCourseStatus();
+    refreshHome();
     showScreen('homeScreen');
   });
 }
 
 function initBoard() {
   document.getElementById('boardHomeBtn').addEventListener('click', function () {
-    renderCourseStatus();
+    refreshHome();
     showScreen('homeScreen');
   });
   document.getElementById('clearBoardBtn').addEventListener('click', function () {
@@ -1067,7 +1095,7 @@ function initSettings() {
   });
 
   document.getElementById('settingsDoneBtn').addEventListener('click', function () {
-    renderCourseStatus();
+    refreshHome();
     showScreen('homeScreen');
   });
 
