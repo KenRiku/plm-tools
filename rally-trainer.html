@@ -380,9 +380,9 @@
         <input type="time" id="targetTimeInput" step="1">
       </div>
       <div class="row">
+        <button class="btn secondary" data-offset="5">+5秒</button>
         <button class="btn secondary" data-offset="10">+10秒</button>
-        <button class="btn secondary" data-offset="30">+30秒</button>
-        <button class="btn secondary" data-offset="60">+60秒</button>
+        <button class="btn secondary" data-offset="20">+20秒</button>
       </div>
     </div>
 
@@ -735,8 +735,8 @@ function targetEpochMs() {
 }
 
 function freshTargetEpochMs() {
-  var epoch = Date.now() + DEFAULT_LEAD_SECONDS * 1000;
-  document.getElementById('targetTimeInput').value = timeStringFromNow(DEFAULT_LEAD_SECONDS);
+  var epoch = wholeSecondAfter(DEFAULT_LEAD_SECONDS);
+  document.getElementById('targetTimeInput').value = timeStringFromEpoch(epoch);
   return epoch;
 }
 
@@ -1244,7 +1244,15 @@ function initHome() {
 function defaultTargetTime() { return timeStringFromNow(DEFAULT_LEAD_SECONDS); }
 
 function timeStringFromNow(offsetSeconds) {
-  var target = new Date(Date.now() + offsetSeconds * 1000);
+  return timeStringFromEpoch(wholeSecondAfter(offsetSeconds));
+}
+
+function wholeSecondAfter(offsetSeconds) {
+  return Math.ceil((Date.now() + offsetSeconds * 1000) / 1000) * 1000;
+}
+
+function timeStringFromEpoch(epoch) {
+  var target = new Date(epoch);
   return String(target.getHours()).padStart(2, '0') + ':' +
     String(target.getMinutes()).padStart(2, '0') + ':' +
     String(target.getSeconds()).padStart(2, '0');
