@@ -116,6 +116,12 @@
        toolbar shortens that and would pull the frame off a phone's edges. */
     max-width: 520px;
     margin: 0 auto;
+    /* Sizes are driven off the frame's width, so a button keeps its shape
+       whatever the screen's aspect ratio. --source-k converts a height
+       percentage of the 1080x2340 screenshots into that width-relative unit. */
+    container-type: inline-size;
+    --source-k: 2.1667;
+    --ui-scale: 1.12;
     background: #16263a;
     overflow: hidden;
     touch-action: manipulation;
@@ -126,15 +132,23 @@
   .game-screen { position: absolute; inset: 0; display: none; }
   .game-screen.active { display: block; }
 
-  /* Every mock element is positioned by its centre as a % of the frame,
-     taken straight off the in-game screenshots. */
-  .el {
+  /* Every mock element is positioned by its centre as a % of the frame, taken
+     straight off the in-game screenshots, and sized off the frame's width so
+     its proportions survive any screen aspect. */
+  .el, .panel-station, .modal-rally, .modal-header {
     position: absolute;
+    left: calc(var(--x) * 1%);
+    top: calc(var(--y) * 1%);
+    width: calc(var(--w) * var(--ui-scale) * 1cqw);
+    height: calc(var(--h) * var(--source-k) * var(--ui-scale) * 1cqw);
     transform: translate(-50%, -50%);
+  }
+
+  .el {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: clamp(9px, 2.6vmin, 15px);
+    font-size: clamp(9px, calc(3.1cqw * var(--ui-scale)), 20px);
     font-weight: 700;
     border-radius: 8px;
     text-align: center;
@@ -153,28 +167,25 @@
   }
 
   .panel-station {
-    position: absolute;
     background: linear-gradient(#eaf6ff, #cfe6f7);
     border-radius: 14px;
     border: 2px solid #fff;
   }
 
   .modal-rally {
-    position: absolute;
     background: linear-gradient(#dceeff, #bcdcf5);
     border-radius: 14px;
     border: 2px solid #fff;
     overflow: hidden;
   }
   .modal-header {
-    position: absolute;
     background: linear-gradient(#6aa9d8, #4a86b8);
     color: #fff;
     font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: clamp(10px, 2.8vmin, 16px);
+    font-size: clamp(10px, calc(3.3cqw * var(--ui-scale)), 21px);
   }
 
   .checkbox {
@@ -385,44 +396,44 @@
       <!-- Step 0 is done in advance, so the run opens with the station popup
            already showing and only the clock left to wait on. -->
       <div class="game-screen active" id="stationScreen">
-        <div class="panel-station" style="left:20.9%; top:39.3%; width:58.5%; height:32.3%;"></div>
-        <div class="el plate" style="left:50.2%; top:44.5%; width:54.8%; height:8.5%; border-radius:10px;">10号砦</div>
-        <div class="el text" style="left:50.2%; top:50.4%; width:54.8%; height:3%; color:#1b3a55;">10号砦</div>
-        <div class="el plate" style="left:50.2%; top:53.9%; width:54.8%; height:3.4%; color:#5b7d95;">所属同盟　　なし</div>
-        <div class="el blue" style="left:36.2%; top:58.8%; width:25.4%; height:3%;">栄光の壁</div>
-        <div class="el blue" style="left:64.4%; top:58.8%; width:25.4%; height:3%;">報酬とルール</div>
-        <div class="el orange target" data-step="0" style="left:36.2%; top:63.6%; width:25.4%; height:3%;">集結</div>
-        <div class="el orange" style="left:64.4%; top:63.6%; width:25.4%; height:3%;">攻撃</div>
-        <div class="el blue" style="left:36.2%; top:68.5%; width:25.4%; height:3%;">戦闘記録</div>
+        <div class="panel-station" style="--x:50.15; --y:55.45; --w:58.5; --h:32.3;"></div>
+        <div class="el plate" style="--x:50.2; --y:44.5; --w:54.8; --h:8.5; border-radius:10px;">10号砦</div>
+        <div class="el text" style="--x:50.2; --y:50.4; --w:54.8; --h:3; color:#1b3a55;">10号砦</div>
+        <div class="el plate" style="--x:50.2; --y:53.9; --w:54.8; --h:3.4; color:#5b7d95;">所属同盟　　なし</div>
+        <div class="el blue" style="--x:36.2; --y:58.8; --w:25.4; --h:3;">栄光の壁</div>
+        <div class="el blue" style="--x:64.4; --y:58.8; --w:25.4; --h:3;">報酬とルール</div>
+        <div class="el orange target" data-step="0" style="--x:36.2; --y:63.6; --w:25.4; --h:3;">集結</div>
+        <div class="el orange" style="--x:64.4; --y:63.6; --w:25.4; --h:3;">攻撃</div>
+        <div class="el blue" style="--x:36.2; --y:68.5; --w:25.4; --h:3;">戦闘記録</div>
       </div>
 
       <div class="game-screen" id="rallyModalScreen">
-        <div class="modal-rally" style="left:3.3%; top:35.8%; width:93.5%; height:31%;"></div>
-        <div class="modal-header" style="left:3.3%; top:36.8%; width:93.5%; height:2.9%;">集結を発起</div>
-        <div class="el plate" style="left:50%; top:49.8%; width:87.2%; height:16.8%; border-radius:10px; background:rgba(255,255,255,0.35);"></div>
-        <div class="el text" style="left:50%; top:45.2%; width:60%; height:3%; color:#25455f;">集結時間を設定しましょう</div>
-        <div class="el checkbox checked" style="left:18.1%; top:50%; width:6.7%; height:3.1%;">✓</div>
-        <div class="el text" style="left:25.1%; top:50%; width:8%; height:3%; color:#25455f;">1分</div>
-        <div class="el checkbox target" data-step="1" style="left:54.7%; top:50%; width:6.7%; height:3.1%;">✓</div>
-        <div class="el text" style="left:62.1%; top:50%; width:8%; height:3%; color:#25455f;">5分</div>
-        <div class="el blue target" data-step="2" style="left:50%; top:62.5%; width:38.1%; height:4.5%;">集結を発起</div>
+        <div class="modal-rally" style="--x:50.05; --y:51.3; --w:93.5; --h:31;"></div>
+        <div class="modal-header" style="--x:50.05; --y:38.25; --w:93.5; --h:2.9;">集結を発起</div>
+        <div class="el plate" style="--x:50; --y:49.8; --w:87.2; --h:16.8; border-radius:10px; background:rgba(255,255,255,0.35);"></div>
+        <div class="el text" style="--x:50; --y:45.2; --w:60; --h:3; color:#25455f;">集結時間を設定しましょう</div>
+        <div class="el checkbox checked" style="--x:18.1; --y:50; --w:6.7; --h:3.1;">✓</div>
+        <div class="el text" style="--x:25.1; --y:50; --w:8; --h:3; color:#25455f;">1分</div>
+        <div class="el checkbox target" data-step="1" style="--x:54.7; --y:50; --w:6.7; --h:3.1;">✓</div>
+        <div class="el text" style="--x:62.1; --y:50; --w:8; --h:3; color:#25455f;">5分</div>
+        <div class="el blue target" data-step="2" style="--x:50; --y:62.5; --w:38.1; --h:4.5;">集結を発起</div>
       </div>
 
       <div class="game-screen" id="marchScreen">
         <div class="march-bg"></div>
-        <div class="el text" style="left:33%; top:6.7%; width:60%; height:4%; justify-content:flex-start;">← ターゲット：10号砦</div>
-        <div class="el plate" style="left:50%; top:16%; width:94%; height:7%;">兵士 194,520 / 194,520</div>
-        <div class="el plate" style="left:23.8%; top:33%; width:22%; height:17%;">Lv.80</div>
-        <div class="el plate" style="left:50%; top:33%; width:22%; height:17%;">Lv.80</div>
-        <div class="el plate" style="left:76.2%; top:33%; width:22%; height:17%;">Lv.80</div>
-        <div class="el plate" style="left:50%; top:48.4%; width:96%; height:6.5%;">煌耀弓兵</div>
-        <div class="el plate" style="left:50%; top:57.4%; width:96%; height:6.5%;">烈日盾兵</div>
-        <div class="el plate" style="left:50%; top:66.3%; width:96%; height:6.5%;">烈日槍兵</div>
-        <div class="el plate" style="left:50%; top:75.2%; width:96%; height:6.5%;">烈日弓兵</div>
-        <div class="el plate" style="left:9.3%; top:93.5%; width:15%; height:5%;">全て撤回</div>
-        <div class="el plate" style="left:27.5%; top:93.5%; width:15%; height:5%;">平均配置</div>
-        <div class="el plate" style="left:45.6%; top:93.5%; width:15%; height:5%;">比率配分</div>
-        <div class="el blue target" data-step="3" style="left:76.5%; top:95.9%; width:42%; height:4.3%;">出征</div>
+        <div class="el text" style="--x:33; --y:6.7; --w:60; --h:4; justify-content:flex-start;">← ターゲット：10号砦</div>
+        <div class="el plate" style="--x:50; --y:16; --w:94; --h:7;">兵士 194,520 / 194,520</div>
+        <div class="el plate" style="--x:23.8; --y:33; --w:22; --h:17;">Lv.80</div>
+        <div class="el plate" style="--x:50; --y:33; --w:22; --h:17;">Lv.80</div>
+        <div class="el plate" style="--x:76.2; --y:33; --w:22; --h:17;">Lv.80</div>
+        <div class="el plate" style="--x:50; --y:48.4; --w:96; --h:6.5;">煌耀弓兵</div>
+        <div class="el plate" style="--x:50; --y:57.4; --w:96; --h:6.5;">烈日盾兵</div>
+        <div class="el plate" style="--x:50; --y:66.3; --w:96; --h:6.5;">烈日槍兵</div>
+        <div class="el plate" style="--x:50; --y:75.2; --w:96; --h:6.5;">烈日弓兵</div>
+        <div class="el plate" style="--x:9.3; --y:93.5; --w:15; --h:5;">全て撤回</div>
+        <div class="el plate" style="--x:27.5; --y:93.5; --w:15; --h:5;">平均配置</div>
+        <div class="el plate" style="--x:45.6; --y:93.5; --w:15; --h:5;">比率配分</div>
+        <div class="el blue target" data-step="3" style="--x:76.5; --y:95.9; --w:42; --h:4.3;">出征</div>
       </div>
 
       <div class="hud" id="runHud">
@@ -670,6 +681,7 @@ function showToast(message, durationMs) {
 
 var settings = loadSettings();
 var run = null;
+var runSequence = 0;
 var wakeLock = null;
 
 // A picked time that has already passed means the value went stale while the
@@ -715,6 +727,7 @@ function startRun() {
   var epoch = targetEpochMs();
 
   run = {
+    id: ++runSequence,
     startPerfTime: performance.now() + (epoch - Date.now()),
     stepIndex: 0,
     shownAt: [],
@@ -794,14 +807,16 @@ function formatCountdown(ms) {
 // is when that paint reached the display. Refresh-rate jitter cancels out.
 function armStep(index) {
   var step = STANDARD_COURSE[index];
+  var runId = run.id;
   showGameScreen(step.screen);
 
   requestAnimationFrame(function () {
+    if (isStaleRun(runId)) return;
     var target = document.querySelector('.el.target[data-step="' + index + '"]');
     target.classList.add('armed');
 
     requestAnimationFrame(function (shownAt) {
-      if (!run || run.finished) return;
+      if (isStaleRun(runId)) return;
       run.shownAt[index] = shownAt;
       run.stepIndex = index;
       run.live = true;
@@ -848,7 +863,11 @@ function handleFrameTap(event) {
     finishRun();
     return;
   }
-  setTimeout(function () { armStep(nextIndex); }, settings.delaysMs[nextIndex]);
+  var runId = run.id;
+  setTimeout(function () {
+    if (isStaleRun(runId)) return;
+    armStep(nextIndex);
+  }, settings.delaysMs[nextIndex]);
 }
 
 // The 5-minute checkbox is the one target whose state the player can see
@@ -858,6 +877,10 @@ function applyTapFeedback(index) {
   var checkboxes = document.querySelectorAll('#rallyModalScreen .checkbox');
   checkboxes[0].classList.remove('checked');
   checkboxes[1].classList.add('checked');
+}
+
+function isStaleRun(runId) {
+  return !run || run.finished || run.id !== runId;
 }
 
 function hasStarted() {
