@@ -33,6 +33,7 @@
 
   .screen { display: none; }
   .screen.active { display: block; }
+  .screen.settling button { pointer-events: none; }
 
   h1 { font-size: 20px; margin: 0 0 4px; }
   h2 { font-size: 16px; margin: 20px 0 8px; color: var(--ice); }
@@ -99,13 +100,20 @@
   /* ===== Run screen: a fixed-aspect mock of the phone, so tap targets sit
      where they sit in the real game regardless of the device. ===== */
 
-  #runScreen { padding: 0; max-width: none; }
+  #runScreen.active {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: var(--bg);
+  }
 
   .phone-frame {
     position: relative;
+    width: 100%;
+    height: 100%;
+    /* Fills a phone edge to edge; stays phone-shaped on a wide desktop. */
+    max-width: calc(100dvh * 0.55);
     margin: 0 auto;
-    width: min(100vw, calc(100dvh * 1080 / 2340));
-    height: min(100dvh, calc(100vw * 2340 / 1080));
     background: #16263a;
     overflow: hidden;
     touch-action: manipulation;
@@ -181,6 +189,7 @@
     position: absolute;
     top: 0; left: 0; right: 0;
     padding: 10px;
+    padding-top: calc(10px + env(safe-area-inset-top, 0px));
     background: rgba(4, 14, 26, 0.82);
     text-align: center;
     z-index: 10;
@@ -285,7 +294,9 @@
   }
 
   .abort {
-    position: absolute; top: 6px; right: 8px; z-index: 30;
+    position: absolute; z-index: 30;
+    top: calc(6px + env(safe-area-inset-top, 0px));
+    right: calc(8px + env(safe-area-inset-right, 0px));
     background: rgba(0,0,0,0.45); color: #fff; border: none;
     border-radius: 8px; padding: 6px 10px; font-size: 12px; font-family: inherit;
   }
@@ -537,6 +548,7 @@ var SCREEN_ELEMENT_IDS = {
 var MIN_SUBMITTABLE_MS = 1000;
 var DEFAULT_LEAD_SECONDS = 10;
 var BANANA_HIT_MS = 950;
+var SCREEN_SETTLE_MS = 350;
 var COURSE_VERSION = 2;
 var CLEAR_PHRASE = '9t9t';
 var BOARD_ENDPOINT = '/api/leaderboard';
@@ -623,9 +635,26 @@ function personalBestMs() {
 function showScreen(id) {
   var screens = document.querySelectorAll('.screen');
   for (var i = 0; i < screens.length; i++) screens[i].classList.remove('active');
-  document.getElementById(id).classList.add('active');
+
+  var next = document.getElementById(id);
+  next.classList.add('active');
+  settleScreen(next);
   window.scrollTo(0, 0);
 }
+
+// Screens swap on pointerdown, so the click that follows lands on whatever
+// button has just appeared under the finger. Ignore taps until it settles.
+function settleScreen(screen) {
+  screen.classList.add('settling');
+  setTimeout(function () { screen.classList.remove('settling'); }, SCREEN_SETTLE_MS);
+}
+
+document.addEventListener('click', function (event) {
+  var screen = event.target.closest('.screen');
+  if (!screen || !screen.classList.contains('settling')) return;
+  event.preventDefault();
+  event.stopPropagation();
+}, true);
 
 function showToast(message, durationMs) {
   var toast = document.getElementById('toast');
@@ -784,6 +813,7 @@ function updateRunHud(index) {
 }
 
 function handleFrameTap(event) {
+  event.preventDefault();
   if (!run || run.finished) return;
 
   if (!run.live) {
