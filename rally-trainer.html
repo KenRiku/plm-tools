@@ -111,8 +111,10 @@
     position: relative;
     width: 100%;
     height: 100%;
-    /* Fills a phone edge to edge; stays phone-shaped on a wide desktop. */
-    max-width: calc(100dvh * 0.55);
+    /* Wider than any phone, so phones fill the screen; a desktop still gets a
+       phone-shaped frame. Deliberately not tied to viewport height: a browser
+       toolbar shortens that and would pull the frame off a phone's edges. */
+    max-width: 520px;
     margin: 0 auto;
     background: #16263a;
     overflow: hidden;
@@ -726,6 +728,7 @@ function startRun() {
   resetCheckboxes();
   showGameScreen(STANDARD_COURSE[0].screen);
   showScreen('runScreen');
+  enterFullscreen();
   requestWakeLock();
   document.addEventListener('visibilitychange', handleVisibilityChange);
   tickCountdown();
@@ -742,6 +745,7 @@ function handleVisibilityChange() {
 function endRun() {
   run.finished = true;
   releaseWakeLock();
+  exitFullscreen();
   document.removeEventListener('visibilitychange', handleVisibilityChange);
 }
 
@@ -1096,6 +1100,29 @@ function clearBoard(phrase) {
       loadBoard();
     })
     .catch(function () { showToast('ブブー❌'); });
+}
+
+// ===== Fullscreen =====
+// Hides the browser toolbar so the frame gets the whole screen. Only allowed
+// from a user gesture, which is why it runs on 開始 rather than on load.
+
+function enterFullscreen() {
+  var element = document.documentElement;
+  var request = element.requestFullscreen || element.webkitRequestFullscreen;
+  if (!request) return;
+
+  var result = request.call(element);
+  if (result && result.catch) result.catch(function () { /* denied — the run still works */ });
+}
+
+function exitFullscreen() {
+  if (!document.fullscreenElement && !document.webkitFullscreenElement) return;
+
+  var exit = document.exitFullscreen || document.webkitExitFullscreen;
+  if (!exit) return;
+
+  var result = exit.call(document);
+  if (result && result.catch) result.catch(function () { /* already gone */ });
 }
 
 // ===== Wake lock =====
