@@ -197,6 +197,92 @@
   .flash.show { animation: flashOut 0.28s ease-out; }
   @keyframes flashOut { from { opacity: 0.5; } to { opacity: 0; } }
 
+  /* ===== Banana strike (false start) ===== */
+
+  .banana-hit {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 40;
+    pointer-events: none;
+  }
+
+  .banana-hit > * { position: absolute; opacity: 0; }
+
+  .banana-projectile { font-size: 22vmin; line-height: 1; }
+  .banana-hit.play .banana-projectile {
+    animation: bananaFly 0.34s cubic-bezier(0.4, 0, 1, 1) forwards,
+               bananaSquash 0.6s 0.34s ease-in forwards;
+  }
+  @keyframes bananaFly {
+    0%   { opacity: 0; transform: translate(90%, -160%) rotate(0deg) scale(0.3); }
+    18%  { opacity: 1; }
+    100% { opacity: 1; transform: translate(0, 0) rotate(760deg) scale(1); }
+  }
+  @keyframes bananaSquash {
+    0%   { opacity: 1; transform: translate(0, 0) rotate(760deg) scale(1, 1); }
+    14%  { opacity: 1; transform: translate(0, 4%) rotate(760deg) scale(1.5, 0.55); }
+    30%  { opacity: 1; transform: translate(0, 0) rotate(770deg) scale(0.95, 1.1); }
+    100% { opacity: 0; transform: translate(-18%, 150%) rotate(1120deg) scale(0.8); }
+  }
+
+  .banana-impact {
+    width: 20vmin;
+    height: 20vmin;
+    border-radius: 50%;
+    border: 1.4vmin solid #ffd54f;
+  }
+  .banana-hit.play .banana-impact { animation: impactRing 0.38s 0.3s ease-out forwards; }
+  @keyframes impactRing {
+    0%   { opacity: 0.95; transform: scale(0.15); }
+    55%  { opacity: 0.35; transform: scale(1.5); }
+    100% { opacity: 0; transform: scale(2.1); }
+  }
+
+  .banana-stars { font-size: 9vmin; }
+  .banana-hit.play .banana-stars { animation: dazed 0.75s 0.36s ease-out forwards; }
+  @keyframes dazed {
+    0%   { opacity: 0; transform: translate(0, 0) scale(0.4); }
+    25%  { opacity: 1; transform: translate(-26%, -34%) scale(1.1); }
+    100% { opacity: 0; transform: translate(-46%, -68%) scale(0.9); }
+  }
+
+  .banana-shout {
+    font-size: 8vmin;
+    font-weight: 800;
+    color: #ffd54f;
+    text-shadow: 0 0.5vmin 0 #7a4a00;
+    white-space: nowrap;
+  }
+  .banana-hit.play .banana-shout { animation: shout 0.7s 0.32s ease-out forwards; }
+  @keyframes shout {
+    0%   { opacity: 0; transform: translate(0, 20%) scale(0.5) rotate(-8deg); }
+    30%  { opacity: 1; transform: translate(0, -55%) scale(1.15) rotate(-8deg); }
+    100% { opacity: 0; transform: translate(0, -95%) scale(1) rotate(-8deg); }
+  }
+
+  .phone-frame.reel { animation: reel 0.5s 0.3s ease-out; }
+  @keyframes reel {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    12% { transform: translate(-3%, 1.5%) rotate(-1.6deg); }
+    28% { transform: translate(2.6%, -1.2%) rotate(1.3deg); }
+    45% { transform: translate(-2%, 1%) rotate(-1deg); }
+    62% { transform: translate(1.4%, -0.6%) rotate(0.7deg); }
+    80% { transform: translate(-0.7%, 0.3%) rotate(-0.35deg); }
+  }
+
+  .flash.banana { background: #ffd54f; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .banana-hit.play .banana-projectile,
+    .banana-hit.play .banana-impact,
+    .banana-hit.play .banana-stars,
+    .banana-hit.play .banana-shout { animation-duration: 0.01s; }
+    .phone-frame.reel { animation: none; }
+  }
+
   .abort {
     position: absolute; top: 6px; right: 8px; z-index: 30;
     background: rgba(0,0,0,0.45); color: #fff; border: none;
@@ -255,14 +341,13 @@
 
   <!-- ===== HOME ===== -->
   <div class="screen active" id="homeScreen">
-    <h1>集結タップ練習</h1>
-    <p class="sub">砦・拠点の解放と同時に集結を切る、そのタップ列だけを練習する。</p>
+    <h1>ゴリラ達の集結</h1>
+    <p class="sub"></p>
 
     <div class="card">
       <div class="field">
         <label>開始時刻</label>
         <input type="time" id="targetTimeInput" step="1">
-        <div class="hint">端末の時計基準。この時刻に「集結」が押せるようになる。</div>
       </div>
       <div class="row">
         <button class="btn secondary" data-offset="10">+10秒</button>
@@ -333,6 +418,12 @@
       </div>
 
       <div class="flash" id="flash"></div>
+      <div class="banana-hit" id="bananaHit" hidden>
+        <span class="banana-projectile">🍌</span>
+        <span class="banana-impact"></span>
+        <span class="banana-stars">💫</span>
+        <span class="banana-shout">ウホッ!!</span>
+      </div>
       <button class="abort" id="abortBtn">中止</button>
     </div>
   </div>
@@ -354,7 +445,6 @@
   <!-- ===== LEADERBOARD ===== -->
   <div class="screen" id="boardScreen">
     <h1>🏆 ランキング</h1>
-    <p class="sub">標準コースで走った記録だけが並ぶ。速い順。</p>
     <div class="card">
       <table class="board" id="boardTable"></table>
       <div class="empty" id="boardEmpty">読み込み中…</div>
@@ -371,16 +461,16 @@
   <!-- ===== SETTINGS ===== -->
   <div class="screen" id="settingsScreen">
     <h1>⚙️ 設定</h1>
-    <p class="sub">アニメ待ち時間を標準から変えると、その回は練習扱いになりランキングには送れない。</p>
+    <p class="sub">画面表示ディレイを標準から変えると、その回は練習扱いになりランキングには送れない。</p>
 
     <div class="card">
       <div class="field">
-        <label>名前</label>
+        <label>ユーザー名</label>
         <input type="text" id="nameInput" maxlength="24" placeholder="名無しのゴリラ">
       </div>
     </div>
 
-    <h2>アニメ待ち時間</h2>
+    <h2>画面表示ディレイ</h2>
     <div class="card" id="delayFields"></div>
 
     <h2>補正</h2>
@@ -388,7 +478,7 @@
       <div class="field">
         <label>入力遅延補正 (ms)</label>
         <input type="number" id="inputCompInput" step="1">
-        <div class="hint">ブラウザのタップ検出はゲーム本体より少し遅い。実機の感覚に合わせて足し引きする。</div>
+        <div class="hint">ブラウザのタップ検出はゲーム本体より少し遅い。実機の感覚に合わせて調整しましょう。</div>
       </div>
       <div class="field">
         <label>表示遅延補正 (ms)</label>
@@ -397,6 +487,7 @@
       </div>
       <div class="toggle">
         <span>フライング判定</span>
+        <div class="hint">カウントが０になる前にタップするとバナナに殴られます</div>
         <input type="checkbox" id="falseStartInput">
       </div>
     </div>
@@ -409,8 +500,8 @@
 
 <div class="modal-backdrop" id="phraseModal">
   <div class="modal-box">
-    <h3>ランキングを消去</h3>
-    <p>全員の記録が消える。合言葉を入力。</p>
+    <h3>リセット</h3>
+    <p>全ての記録をリセット</p>
     <div class="field"><input type="text" id="phraseInput" autocomplete="off"></div>
     <button class="btn danger" id="phraseConfirmBtn">消去する</button>
     <button class="btn secondary" id="phraseCancelBtn">やめる</button>
@@ -442,6 +533,7 @@ var SCREEN_ELEMENT_IDS = {
 
 var MIN_SUBMITTABLE_MS = 1000;
 var DEFAULT_LEAD_SECONDS = 10;
+var BANANA_HIT_MS = 950;
 var COURSE_VERSION = 2;
 var CLEAR_PHRASE = '9t9t';
 var BOARD_ENDPOINT = '/api/leaderboard';
@@ -692,7 +784,12 @@ function handleFrameTap(event) {
   if (!run || run.finished) return;
 
   if (!run.live) {
-    handleEarlyTap();
+    if (hasStarted()) {
+      run.misses++;
+      flashMiss();
+    } else {
+      handleEarlyTap();
+    }
     return;
   }
 
@@ -726,17 +823,52 @@ function applyTapFeedback(index) {
   checkboxes[1].classList.add('checked');
 }
 
+function hasStarted() {
+  return run.shownAt.length > 0;
+}
+
 function handleEarlyTap() {
   if (!settings.falseStartEnabled) return;
   endRun();
-  showInvalidRun('フライング', '時刻より前にタップした。');
+  playBananaHit(function () {
+    showInvalidRun('フライング', 'カウント前にタップ。バナナに殴られました。');
+  });
+}
+
+function playBananaHit(done) {
+  var overlay = document.getElementById('bananaHit');
+  var frame = document.getElementById('phoneFrame');
+
+  overlay.hidden = false;
+  restartAnimation(overlay, 'play');
+  restartAnimation(frame, 'reel');
+  flashBanana();
+  if (navigator.vibrate) navigator.vibrate([0, 60, 40, 120]);
+
+  setTimeout(function () {
+    overlay.hidden = true;
+    overlay.classList.remove('play');
+    frame.classList.remove('reel');
+    done();
+  }, BANANA_HIT_MS);
+}
+
+// Re-adding the class alone would not replay a finished animation.
+function restartAnimation(element, className) {
+  element.classList.remove(className);
+  void element.offsetWidth;
+  element.classList.add(className);
+}
+
+function flashBanana() {
+  var flash = document.getElementById('flash');
+  flash.classList.add('banana');
+  restartAnimation(flash, 'show');
+  setTimeout(function () { flash.classList.remove('banana'); }, BANANA_HIT_MS);
 }
 
 function flashMiss() {
-  var flash = document.getElementById('flash');
-  flash.classList.remove('show');
-  void flash.offsetWidth;
-  flash.classList.add('show');
+  restartAnimation(document.getElementById('flash'), 'show');
 }
 
 function abortRun() {
@@ -776,7 +908,7 @@ function renderResult(result) {
   if (result.standard && best !== null && result.ms <= best) verdictParts.push('自己ベスト更新');
   else if (best !== null) verdictParts.push('自己ベスト ' + best.toLocaleString() + ' ms');
   if (result.misses > 0) verdictParts.push('ミスタップ ' + result.misses + '回');
-  verdictParts.push(result.standard ? '標準コース' : '練習（設定変更あり）');
+  verdictParts.push(result.standard ? '標準コース' : 'カスタム');
   document.getElementById('resultVerdict').textContent = verdictParts.join(' ・ ');
 
   var rows = result.splits.map(function (split, index) {
@@ -792,13 +924,13 @@ function renderSubmitArea(result) {
   var area = document.getElementById('submitArea');
 
   if (!result.standard) {
-    area.innerHTML = '<div class="card"><span class="badge practice">練習</span> ' +
-      '待ち時間を標準から変えているので、ランキングには送れない。</div>';
+    area.innerHTML = '<div class="card"><span class="badge practice">カスタム</span> ' +
+      '標準の設定ではないので、ランキングには載せられません。</div>';
     return;
   }
   if (result.ms < MIN_SUBMITTABLE_MS) {
     area.innerHTML = '<div class="card">' + MIN_SUBMITTABLE_MS +
-      ' ms 未満は人力では出ないので、ランキングには送れない。</div>';
+      ' ms 明らかにタイムがおかしいウホ。</div>';
     return;
   }
 
@@ -830,11 +962,11 @@ function submitScore(ms) {
   })
     .then(function (response) {
       if (!response.ok) throw new Error(String(response.status));
-      showToast('送信した。');
+      showToast('🍌🍌🍌');
       openBoard();
     })
     .catch(function () {
-      showToast('ランキングに繋がらない。記録は端末に残っている。', 3600);
+      showToast('うほうほっほっほうほほ。失敗', 3600);
       if (button) button.disabled = false;
     });
 }
@@ -859,7 +991,7 @@ function loadBoard() {
     })
     .then(function (data) { renderBoard(data.entries || []); })
     .catch(function () {
-      empty.textContent = 'ランキングに繋がらない。';
+      empty.textContent = 'ただいま表示できませぬ';
     });
 }
 
@@ -869,13 +1001,13 @@ function renderBoard(entries) {
 
   if (!entries.length) {
     table.innerHTML = '';
-    empty.textContent = 'まだ誰も走っていない。';
+    empty.textContent = 'まだ誰も・・・';
     empty.style.display = '';
     return;
   }
 
   var me = playerName();
-  var header = '<tr><th class="rank">#</th><th>名前</th><th></th></tr>';
+  var header = '<tr><th class="rank">#</th><th>ユーザー名</th><th></th></tr>';
   var rows = entries.map(function (entry, index) {
     var mine = entry.name === me ? ' class="me"' : '';
     return '<tr' + mine + '><td class="rank">' + (index + 1) + '</td><td>' +
@@ -898,7 +1030,7 @@ function renderLocalHistory() {
   }
 
   var rows = history.map(function (entry) {
-    var tag = entry.standard ? '標準' : '練習';
+    var tag = entry.standard ? '標準' : 'カスタム';
     return '<tr><td class="rank">' + tag + '</td><td>' + formatDateTime(entry.at) +
       '</td><td>' + entry.ms.toLocaleString() + ' ms</td></tr>';
   });
@@ -927,10 +1059,10 @@ function clearBoard(phrase) {
   })
     .then(function (response) {
       if (!response.ok) throw new Error(String(response.status));
-      showToast('ランキングを消した。');
+      showToast('ランキングを消した・・・のは誰ですか！？');
       loadBoard();
     })
-    .catch(function () { showToast('消去できなかった。'); });
+    .catch(function () { showToast('ブブー❌'); });
 }
 
 // ===== Wake lock =====
@@ -956,10 +1088,10 @@ function renderDelayFields() {
   container.innerHTML = STANDARD_COURSE.map(function (step, index) {
     var isFirst = index === 0;
     var hint = isFirst
-      ? '開始時刻ちょうどに解放されるので固定。'
-      : '標準 ' + step.armDelayMs + ' ms';
+      ? '調整できません。'
+      : '初期値 ' + step.armDelayMs + ' ms';
     return '<div class="field">' +
-      '<label>' + (index + 1) + '. ' + step.label + ' が押せるまで (ms)</label>' +
+      '<label>' + (index + 1) + '. ' + step.label + ' が押せるようになるまで (ms)</label>' +
       '<input type="number" step="10" min="0" data-delay-index="' + index + '"' +
       (isFirst ? ' disabled' : '') + ' value="' + settings.delaysMs[index] + '">' +
       '<div class="hint">' + hint + '</div>' +
@@ -982,7 +1114,7 @@ function renderCourseStatus() {
   var best = personalBestMs();
   var badge = standard
     ? '<span class="badge standard">標準コース</span>'
-    : '<span class="badge practice">練習コース</span>';
+    : '<span class="badge practice">カスタムコース</span>';
   var bestLine = best === null ? '記録なし' : '自己ベスト ' + best.toLocaleString() + ' ms';
 
   document.getElementById('courseStatus').innerHTML = badge +
@@ -1060,7 +1192,7 @@ function initBoard() {
   document.getElementById('phraseConfirmBtn').addEventListener('click', function () {
     var phrase = document.getElementById('phraseInput').value.trim();
     if (phrase !== CLEAR_PHRASE) {
-      showToast('合言葉が違う。');
+      showToast('合言葉が違うヨォ');
       return;
     }
     document.getElementById('phraseModal').classList.remove('active');
@@ -1091,7 +1223,7 @@ function initSettings() {
     saveSettings();
     renderDelayFields();
     renderCourseStatus();
-    showToast('標準コースに戻した。');
+    showToast('標準コースに戻しました。');
   });
 
   document.getElementById('settingsDoneBtn').addEventListener('click', function () {
