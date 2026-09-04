@@ -1,10 +1,11 @@
 // Cache-first app shell so the translator works offline once installed.
 // Bump CACHE_NAME whenever index.html (or any cached asset) changes so
 // clients pick up the new version instead of serving stale content forever.
-const CACHE_NAME = 'gorilla-translator-v8';
+const CACHE_NAME = 'gorilla-translator-v9';
 const APP_SHELL = [
   '/',
   '/index.html',
+  '/rally-trainer.html',
   '/manifest.json',
   '/icon-192.png',
   '/icon-512.png',
@@ -29,6 +30,8 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+  // The leaderboard must never come from the cache.
+  if (new URL(event.request.url).pathname.startsWith('/api/')) return;
   event.respondWith(
     caches.match(event.request).then((cached) => {
       const network = fetch(event.request)

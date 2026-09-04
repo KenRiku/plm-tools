@@ -295,6 +295,23 @@
       50%      { box-shadow: 0 3px 0 #4A148C, 0 0 16px rgba(124, 77, 255, 0.8); }
     }
 
+    /* Rally Trainer Button — secret unlock, icy to match the game it mirrors */
+    .btn-rally {
+      background: linear-gradient(135deg, #29B6F6, #1565C0);
+      box-shadow: 0 3px 0 #0D47A1;
+      animation: rallyGlow 1.6s ease-in-out infinite;
+    }
+
+    .btn-rally:active {
+      box-shadow: 0 1px 0 #0D47A1;
+      transform: scale(0.95) translateY(2px);
+    }
+
+    @keyframes rallyGlow {
+      0%, 100% { box-shadow: 0 3px 0 #0D47A1, 0 0 0 rgba(41, 182, 246, 0.5); }
+      50%      { box-shadow: 0 3px 0 #0D47A1, 0 0 16px rgba(41, 182, 246, 0.9); }
+    }
+
     /* Secondary Buttons */
     .btn-secondary {
       background: #fffde7;
@@ -646,6 +663,11 @@
     <!-- Gorilla Runner (unlocked by typing the secret phrase) -->
     <div class="button-row" id="runnerRow" style="display:none;">
       <button class="btn btn-runner" id="runnerBtn">🕹️ ゴリラランナーで遊ぶ</button>
+    </div>
+
+    <!-- Rally tap trainer (unlocked by typing the secret phrase) -->
+    <div class="button-row" id="rallyRow" style="display:none;">
+      <button class="btn btn-rally" id="rallyBtn">⚔️ 集結タップ練習</button>
     </div>
 
     <!-- Emoji Reactions -->
@@ -1494,6 +1516,11 @@
     const RUNNER_UNLOCK_KEY = 'gorillaRunnerUnlocked';
     const RUNNER_SECRETS = ['ゆしま', 'バッサー', 'バナナ', 'うほっほーい'];
 
+    // The rally trainer's phrase is matched anywhere in the input, not as the
+    // whole value, so it can be typed mid-sentence.
+    const RALLY_UNLOCK_KEY = 'rallyTrainerUnlocked';
+    const RALLY_SECRET = '私はPLMのゴリラ';
+
     function isRunnerUnlocked() {
       try { return localStorage.getItem(RUNNER_UNLOCK_KEY) === '1'; } catch (e) { return false; }
     }
@@ -1503,6 +1530,19 @@
       document.getElementById('runnerRow').style.display = '';
       if (announce) {
         showToast('🕹️ 隠しゲーム「ゴリラランナー」解禁！', 4000);
+        bananaRain(16);
+      }
+    }
+
+    function isRallyUnlocked() {
+      try { return localStorage.getItem(RALLY_UNLOCK_KEY) === '1'; } catch (e) { return false; }
+    }
+
+    function unlockRally(announce) {
+      try { localStorage.setItem(RALLY_UNLOCK_KEY, '1'); } catch (e) { /* Safari private mode */ }
+      document.getElementById('rallyRow').style.display = '';
+      if (announce) {
+        showToast('⚔️ 集結タップ練習を解禁！', 4000);
         bananaRain(16);
       }
     }
@@ -1600,6 +1640,7 @@
       renderStreak();
       updateHeaderEmoji(getTotalBananas(), false);
       if (isRunnerUnlocked()) unlockRunner(false);
+      if (isRallyUnlocked()) unlockRally(false);
 
       // Translate button
       document.getElementById('translateBtn').addEventListener('click', function() {
@@ -1638,6 +1679,11 @@
         window.location.href = 'gorilla-runner.html';
       });
 
+      // Rally trainer button — navigates to the standalone practice tool
+      document.getElementById('rallyBtn').addEventListener('click', function() {
+        window.location.href = 'rally-trainer.html';
+      });
+
       // Name editing
       document.getElementById('nameEditBtn').addEventListener('click', startNameEdit);
       const nameInput = document.getElementById('gorillaNameInput');
@@ -1673,6 +1719,9 @@
         }
         if (RUNNER_SECRETS.includes(e.target.value.trim()) && !isRunnerUnlocked()) {
           unlockRunner(true);
+        }
+        if (e.target.value.includes(RALLY_SECRET) && !isRallyUnlocked()) {
+          unlockRally(true);
         }
       });
     });
