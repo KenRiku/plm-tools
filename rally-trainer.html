@@ -122,7 +122,7 @@
        percentage of the 1080x2340 screenshots into that width-relative unit. */
     container-type: inline-size;
     --source-k: 2.1667;
-    --ui-scale: 1.12;   /* overridden per player; STANDARD_UI_SCALE is the ranked value */
+    --ui-scale: 1;      /* 1 is pixel-exact to the game; overridden per player */
     background: #16263a;
     overflow: hidden;
     touch-action: manipulation;
@@ -503,8 +503,8 @@
     <div class="card">
       <div class="field">
         <label>ボタンの大きさ <span id="uiScaleValue"></span></label>
-        <input type="range" id="uiScaleInput" min="0.8" max="1.4" step="0.02">
-        <div class="hint">標準は1.12。0.8〜1.4の範囲なら好きな大きさでランキングに送れる。1.15を超えると狭い画面ではボタンが重なることがある。</div>
+        <input type="range" id="uiScaleInput" min="0.8" max="1.05" step="0.01">
+        <div class="hint">標準の1.00が実機と同じ大きさ。0.8〜1.05ならどれでもランキングに送れる。ゲーム側のボタン同士の隙間が狭いので、これ以上大きくするとくっついてしまう。</div>
       </div>
     </div>
 
@@ -573,9 +573,12 @@ var DEFAULT_LEAD_SECONDS = 10;
 var BANANA_HIT_MS = 950;
 var SCREEN_SETTLE_MS = 350;
 var COURSE_VERSION = 2;
-var STANDARD_UI_SCALE = 1.12;
+// At 1 the mock matches the game pixel for pixel. The game leaves only 2.8% of
+// the width between the paired buttons, so they touch at 1.110 (and 出征 leaves
+// the screen at 1.119); the ceiling keeps a visible gap well short of that.
+var STANDARD_UI_SCALE = 1;
 var MIN_UI_SCALE = 0.8;
-var MAX_UI_SCALE = 1.4;
+var MAX_UI_SCALE = 1.05;
 var CLEAR_PHRASE = '9t9t';
 var BOARD_ENDPOINT = '/api/leaderboard';
 var LOCAL_HISTORY_LIMIT = 20;
